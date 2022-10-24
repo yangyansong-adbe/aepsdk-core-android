@@ -26,6 +26,7 @@ import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.internal.eventhub.EventHub;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubError;
+import com.adobe.marketing.mobile.simplification.extension.InternalExtensions;
 import com.adobe.marketing.mobile.util.DataReader;
 
 import java.util.ArrayList;
@@ -78,6 +79,16 @@ final public class MobileCore {
         }
 
         EventHub.Companion.getShared().setWrapperType(wrapperType);
+    }
+
+    public static void initializeSDK(@NonNull final Application application, @Nullable final String appId,
+                                     @Nullable final AdobeCallback<?> completionCallback) {
+        ServiceProvider.getInstance().initializeApp(application, MobileCore::collectLaunchInfo);
+        // Register configuration extension
+        EventHub.Companion.getShared().registerExtension(ConfigurationExtension.class);
+
+//        InternalExtensions.INSTANCE.registerInternalExtensions(appId, application, completionCallback);
+        InternalExtensions.INSTANCE.registerInternalExtensionsWithSuperPower(appId, application, completionCallback);
     }
 
     /**

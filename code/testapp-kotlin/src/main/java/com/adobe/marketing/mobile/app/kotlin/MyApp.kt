@@ -19,11 +19,15 @@ class MyApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        MobileCore.setApplication(this)
+//        MobileCore.setApplication(this)
+//        MobileCore.setLogLevel(LoggingMode.VERBOSE)
+//        MobileCore.configureWithAppID("your app id")
+//
+//        MobileCore.registerExtensions(listOf(PerfExtension::class.java)) {
+//
+//        }
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
-        MobileCore.configureWithAppID("your app id")
-
-        MobileCore.registerExtensions(listOf(PerfExtension::class.java)) {
+        MobileCore.initializeSDK(this, "your app id") {
 
         }
     }
