@@ -1,4 +1,4 @@
-package com.adobe.marketing.mobile.simplification.extension
+package com.adobe.marketing.mobile.simplification.internal
 
 import java.lang.annotation.Inherited
 

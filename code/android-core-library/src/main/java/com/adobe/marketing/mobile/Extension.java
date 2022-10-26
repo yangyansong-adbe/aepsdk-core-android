@@ -16,7 +16,7 @@ import androidx.annotation.Nullable;
 
 import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.services.Log;
-import com.adobe.marketing.mobile.simplification.extension.AdobeExtensions;
+import com.adobe.marketing.mobile.simplification.internal.AdobeExtensions;
 
 import java.util.Map;
 
