@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile.app.kotlin
 import android.app.Application
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.app.kotlin.extension.PerfExtension
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.simplification.internal.InitOptions
 
@@ -40,6 +41,7 @@ class MyApp : Application() {
                 .appId("your app id")
                 .logLevel(LoggingMode.VERBOSE)
                 .disableLifecycleStart(false)
+                .thirdPartyExtensions(listOf(PerfExtension::class.java))
                 .build()
         ) {
             Log.debug("test_app", "onCreate", "AEP Mobile SDK is initialized")
