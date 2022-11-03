@@ -26,6 +26,8 @@ import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.internal.eventhub.EventHub;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubError;
+import com.adobe.marketing.mobile.simplification.internal.InitOptions;
+import com.adobe.marketing.mobile.simplification.internal.SDKInitializer;
 import com.adobe.marketing.mobile.util.DataReader;
 
 import java.util.ArrayList;
@@ -78,6 +80,16 @@ final public class MobileCore {
         }
 
         EventHub.Companion.getShared().setWrapperType(wrapperType);
+    }
+
+    public static void initializeSDK(@NonNull final InitOptions initOptions, @Nullable final AdobeCallback<Object> completionCallback) {
+        //TODO: will remove it later
+        ServiceProvider.getInstance().initializeApp(initOptions.getApplication(), MobileCore::collectLaunchInfo);
+
+//        InternalExtensions.INSTANCE.registerInternalExtensions(appId, application, completionCallback);
+        SDKInitializer.INSTANCE.start(initOptions, completionCallback);
+
+
     }
 
     /**
@@ -237,8 +249,7 @@ final public class MobileCore {
      *                       called when this method returns false
      * @return {@code boolean} indicating if the provided parameters are valid and no error occurs
      */
-    public static boolean registerExtension(@NonNull final Class<? extends Extension> extensionClass,
-                                            @Nullable final ExtensionErrorCallback<ExtensionError> errorCallback) {
+    public static boolean registerExtension(@NonNull final Class<? extends Extension> extensionClass, @Nullable final ExtensionErrorCallback<ExtensionError> errorCallback) {
 
         if (!sdkInitializedWithContext.get()) {
             Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to registerExtension - setApplication not called");
@@ -304,12 +315,9 @@ final public class MobileCore {
      * @param eventSource the event source as a valid string. It should not be null or empty.
      * @param callback    the callback whose {@link AdobeCallbackWithError#call(Object)} will be called when the event is heard. It should not be null.
      */
-    public static void registerEventListener(@NonNull final String eventType,
-                                             @NonNull final String eventSource,
-                                             @NonNull final AdobeCallbackWithError<Event> callback) {
+    public static void registerEventListener(@NonNull final String eventType, @NonNull final String eventSource, @NonNull final AdobeCallbackWithError<Event> callback) {
         if (callback == null) {
-            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to registerEventListener - callback is null",
-                    Log.UNEXPECTED_NULL_VALUE);
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to registerEventListener - callback is null", Log.UNEXPECTED_NULL_VALUE);
             return;
         }
 
@@ -348,9 +356,7 @@ final public class MobileCore {
      * @param responseCallback the callback whose {@link AdobeCallbackWithError#call(Object)} will be called when the response event is heard. It should not be null.
      * @see MobileCore#dispatchResponseEvent(Event, Event, ExtensionErrorCallback)
      */
-    public static void dispatchEventWithResponseCallback(@NonNull final Event event,
-                                                         long timeoutMS,
-                                                         @NonNull final AdobeCallbackWithError<Event> responseCallback) {
+    public static void dispatchEventWithResponseCallback(@NonNull final Event event, long timeoutMS, @NonNull final AdobeCallbackWithError<Event> responseCallback) {
         if (responseCallback == null) {
             Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to dispatchEventWithResponseCallback - callback is null");
             return;
@@ -397,9 +403,7 @@ final public class MobileCore {
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(CoreConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER, advertisingIdentifier);
 
-        Event event = new Event.Builder("SetAdvertisingIdentifier", EventType.GENERIC_IDENTITY, EventSource.REQUEST_CONTENT)
-                .setEventData(eventData)
-                .build();
+        Event event = new Event.Builder("SetAdvertisingIdentifier", EventType.GENERIC_IDENTITY, EventSource.REQUEST_CONTENT).setEventData(eventData).build();
         dispatchEvent(event);
     }
 
@@ -412,9 +416,7 @@ final public class MobileCore {
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(CoreConstants.EventDataKeys.Identity.PUSH_IDENTIFIER, pushIdentifier);
 
-        Event event = new Event.Builder("SetPushIdentifier", EventType.GENERIC_IDENTITY, EventSource.REQUEST_CONTENT)
-                .setEventData(eventData)
-                .build();
+        Event event = new Event.Builder("SetPushIdentifier", EventType.GENERIC_IDENTITY, EventSource.REQUEST_CONTENT).setEventData(eventData).build();
         dispatchEvent(event);
     }
 
@@ -432,8 +434,7 @@ final public class MobileCore {
 
         final Map<String, Object> eventData = new HashMap<>();
         eventData.put(CoreConstants.EventDataKeys.Signal.SIGNAL_CONTEXT_DATA, data);
-        Event event = new Event.Builder("CollectPII", EventType.GENERIC_PII, EventSource.REQUEST_CONTENT)
-                .setEventData(eventData).build();
+        Event event = new Event.Builder("CollectPII", EventType.GENERIC_PII, EventSource.REQUEST_CONTENT).setEventData(eventData).build();
         dispatchEvent(event);
     }
 
@@ -458,9 +459,7 @@ final public class MobileCore {
             return;
         }
 
-        Event event = new Event.Builder("CollectData", EventType.GENERIC_DATA, EventSource.OS)
-                .setEventData(messageInfo)
-                .build();
+        Event event = new Event.Builder("CollectData", EventType.GENERIC_DATA, EventSource.OS).setEventData(messageInfo).build();
         dispatchEvent(event);
     }
 
@@ -505,9 +504,7 @@ final public class MobileCore {
             return;
         }
 
-        Event event = new Event.Builder("CollectData", EventType.GENERIC_DATA, EventSource.OS)
-                .setEventData(marshalledData)
-                .build();
+        Event event = new Event.Builder("CollectData", EventType.GENERIC_DATA, EventSource.OS).setEventData(marshalledData).build();
         dispatchEvent(event);
     }
 
@@ -534,9 +531,7 @@ final public class MobileCore {
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID, appId);
 
-        Event event = new Event.Builder("Configure with AppID",
-                EventType.CONFIGURATION,
-                EventSource.REQUEST_CONTENT).setEventData(eventData).build();
+        Event event = new Event.Builder("Configure with AppID", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT).setEventData(eventData).build();
         dispatchEvent(event);
     }
 
@@ -567,9 +562,7 @@ final public class MobileCore {
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE, fileName);
 
-        Event event = new Event.Builder("Configure with FilePath",
-                EventType.CONFIGURATION,
-                EventSource.REQUEST_CONTENT).setEventData(eventData).build();
+        Event event = new Event.Builder("Configure with FilePath", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT).setEventData(eventData).build();
         dispatchEvent(event);
     }
 
@@ -597,9 +590,7 @@ final public class MobileCore {
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH, filePath);
 
-        Event event = new Event.Builder("Configure with FilePath",
-                EventType.CONFIGURATION,
-                EventSource.REQUEST_CONTENT).setEventData(eventData).build();
+        Event event = new Event.Builder("Configure with FilePath", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT).setEventData(eventData).build();
         dispatchEvent(event);
     }
 
@@ -622,11 +613,9 @@ final public class MobileCore {
         }
 
         Map<String, Object> eventData = new HashMap<>();
-        eventData.put(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG,
-                configMap);
+        eventData.put(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG, configMap);
 
-        Event event = new Event.Builder("Configuration Update", EventType.CONFIGURATION,
-                EventSource.REQUEST_CONTENT).setEventData(eventData).build();
+        Event event = new Event.Builder("Configuration Update", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT).setEventData(eventData).build();
         dispatchEvent(event);
     }
 
@@ -637,11 +626,9 @@ final public class MobileCore {
      */
     public static void clearUpdatedConfiguration() {
         Map<String, Object> eventData = new HashMap<>();
-        eventData.put(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG,
-                true);
+        eventData.put(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG, true);
 
-        Event event = new Event.Builder("Configuration Update", EventType.CONFIGURATION,
-                EventSource.REQUEST_CONTENT).setEventData(eventData).build();
+        Event event = new Event.Builder("Configuration Update", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT).setEventData(eventData).build();
         dispatchEvent(event);
     }
 
@@ -684,11 +671,7 @@ final public class MobileCore {
 
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG, true);
-        Event event = new Event.Builder("PrivacyStatusRequest",
-                EventType.CONFIGURATION,
-                EventSource.REQUEST_CONTENT
-        )
-                .setEventData(eventData).build();
+        Event event = new Event.Builder("PrivacyStatusRequest", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT).setEventData(eventData).build();
 
 
         AdobeCallbackWithError<Event> callbackWithError = new AdobeCallbackWithError<Event>() {
@@ -704,8 +687,7 @@ final public class MobileCore {
 
             @Override
             public void call(Event event) {
-                String status = DataReader.optString(event.getEventData(),
-                        CoreConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY, null);
+                String status = DataReader.optString(event.getEventData(), CoreConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY, null);
                 callback.call(MobilePrivacyStatus.fromString(status));
             }
         };
@@ -737,8 +719,7 @@ final public class MobileCore {
 
             @Override
             public void call(Event event) {
-                String value = DataReader.optString(event.getEventData(),
-                        CoreConstants.EventDataKeys.Configuration.CONFIGURATION_RESPONSE_IDENTITY_ALL_IDENTIFIERS, "{}");
+                String value = DataReader.optString(event.getEventData(), CoreConstants.EventDataKeys.Configuration.CONFIGURATION_RESPONSE_IDENTITY_ALL_IDENTIFIERS, "{}");
                 callback.call(value);
             }
         };
@@ -751,8 +732,7 @@ final public class MobileCore {
      * Clears all identifiers from Edge extensions and generates a new Experience Cloud ID (ECID).
      */
     public static void resetIdentities() {
-        Event event = new Event.Builder("Reset Identities Request", EventType.GENERIC_IDENTITY, EventSource.REQUEST_RESET)
-                .build();
+        Event event = new Event.Builder("Reset Identities Request", EventType.GENERIC_IDENTITY, EventSource.REQUEST_RESET).build();
         dispatchEvent(event);
     }
 
@@ -776,13 +756,10 @@ final public class MobileCore {
      */
     public static void lifecycleStart(@Nullable final Map<String, String> additionalContextData) {
         Map<String, Object> eventData = new HashMap<>();
-        eventData.put(CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_ACTION_KEY,
-                CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_START);
+        eventData.put(CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_ACTION_KEY, CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_START);
         eventData.put(CoreConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA, additionalContextData);
 
-        Event event = new Event.Builder("LifecycleResume", EventType.GENERIC_LIFECYCLE, EventSource.REQUEST_CONTENT)
-                .setEventData(eventData)
-                .build();
+        Event event = new Event.Builder("LifecycleResume", EventType.GENERIC_LIFECYCLE, EventSource.REQUEST_CONTENT).setEventData(eventData).build();
         dispatchEvent(event);
     }
 
@@ -802,12 +779,9 @@ final public class MobileCore {
      */
     public static void lifecyclePause() {
         Map<String, Object> eventData = new HashMap<>();
-        eventData.put(CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_ACTION_KEY,
-                CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_PAUSE);
+        eventData.put(CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_ACTION_KEY, CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_PAUSE);
 
-        Event event = new Event.Builder("LifecyclePause", EventType.GENERIC_LIFECYCLE, EventSource.REQUEST_CONTENT)
-                .setEventData(eventData)
-                .build();
+        Event event = new Event.Builder("LifecyclePause", EventType.GENERIC_LIFECYCLE, EventSource.REQUEST_CONTENT).setEventData(eventData).build();
         dispatchEvent(event);
     }
 
@@ -830,8 +804,7 @@ final public class MobileCore {
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(CoreConstants.EventDataKeys.Analytics.TRACK_ACTION, action == null ? "" : action);
         eventData.put(CoreConstants.EventDataKeys.Analytics.CONTEXT_DATA, contextData == null ? new HashMap<String, String>() : contextData);
-        Event event = new Event.Builder("Analytics Track", EventType.GENERIC_TRACK, EventSource.REQUEST_CONTENT)
-                .setEventData(eventData).build();
+        Event event = new Event.Builder("Analytics Track", EventType.GENERIC_TRACK, EventSource.REQUEST_CONTENT).setEventData(eventData).build();
         dispatchEvent(event);
     }
 
@@ -850,8 +823,7 @@ final public class MobileCore {
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(CoreConstants.EventDataKeys.Analytics.TRACK_STATE, state == null ? "" : state);
         eventData.put(CoreConstants.EventDataKeys.Analytics.CONTEXT_DATA, contextData == null ? new HashMap<String, String>() : contextData);
-        Event event = new Event.Builder("Analytics Track", EventType.GENERIC_TRACK, EventSource.REQUEST_CONTENT)
-                .setEventData(eventData).build();
+        Event event = new Event.Builder("Analytics Track", EventType.GENERIC_TRACK, EventSource.REQUEST_CONTENT).setEventData(eventData).build();
         dispatchEvent(event);
     }
 
@@ -871,8 +843,7 @@ final public class MobileCore {
      * @deprecated Use {@link MobileCore#dispatchEventWithResponseCallback(Event, long, AdobeCallbackWithError)} instead by explicitly specifing timeout.
      */
     @Deprecated
-    public static void dispatchEventWithResponseCallback(@NonNull final Event event,
-                                                         @NonNull final AdobeCallbackWithError<Event> responseCallback) {
+    public static void dispatchEventWithResponseCallback(@NonNull final Event event, @NonNull final AdobeCallbackWithError<Event> responseCallback) {
         dispatchEventWithResponseCallback(event, API_TIMEOUT_MS, responseCallback);
     }
 
@@ -885,8 +856,7 @@ final public class MobileCore {
      * @deprecated Extensions should use {@link ExtensionApi#dispatch(Event)} instead
      */
     @Deprecated
-    public static boolean dispatchEvent(@NonNull final Event event,
-                                        @Nullable final ExtensionErrorCallback<ExtensionError> errorCallback) {
+    public static boolean dispatchEvent(@NonNull final Event event, @Nullable final ExtensionErrorCallback<ExtensionError> errorCallback) {
         if (event == null) {
             Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "dispatchEvent failed - event is null");
 
@@ -916,9 +886,7 @@ final public class MobileCore {
      * @deprecated Extensions should use {@link MobileCore#dispatchEventWithResponseCallback(Event, long, AdobeCallbackWithError)} instead.
      */
     @Deprecated
-    public static boolean dispatchEventWithResponseCallback(@NonNull final Event event,
-                                                            @NonNull final AdobeCallback<Event> responseCallback,
-                                                            @Nullable final ExtensionErrorCallback<ExtensionError> errorCallback) {
+    public static boolean dispatchEventWithResponseCallback(@NonNull final Event event, @NonNull final AdobeCallback<Event> responseCallback, @Nullable final ExtensionErrorCallback<ExtensionError> errorCallback) {
         // the core will validate and copy this event
         if (responseCallback == null) {
             Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to dispatchEventWithResponseCallback - responseCallback is null");
@@ -974,9 +942,7 @@ final public class MobileCore {
      * @return {@code boolean} indicating if the the event dispatching operation succeeded
      */
     @Deprecated
-    public static boolean dispatchResponseEvent(@NonNull final Event responseEvent,
-                                                @NonNull final Event requestEvent,
-                                                @Nullable final ExtensionErrorCallback<ExtensionError> errorCallback) {
+    public static boolean dispatchResponseEvent(@NonNull final Event responseEvent, @NonNull final Event requestEvent, @Nullable final ExtensionErrorCallback<ExtensionError> errorCallback) {
         if (requestEvent == null || responseEvent == null) {
             Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to dispatchResponseEvent - requestEvent/responseEvent is null");
 

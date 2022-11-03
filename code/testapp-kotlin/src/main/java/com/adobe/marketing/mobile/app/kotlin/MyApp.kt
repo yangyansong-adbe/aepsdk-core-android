@@ -14,17 +14,37 @@ import android.app.Application
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.app.kotlin.extension.PerfExtension
+import com.adobe.marketing.mobile.services.Log
+import com.adobe.marketing.mobile.simplification.internal.InitOptions
 
 class MyApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        MobileCore.setApplication(this)
-        MobileCore.setLogLevel(LoggingMode.VERBOSE)
-        MobileCore.configureWithAppID("your app id")
+//        MobileCore.setApplication(this)
+//        MobileCore.setLogLevel(LoggingMode.VERBOSE)
+//        MobileCore.configureWithAppID("your app id")
+//
+//        MobileCore.registerExtensions(
+//            listOf(
+//                LifecycleExtension::class.java,
+//                SignalExtension::class.java,
+//                PerfExtension::class.java
+//            )
+//        ) {
+//
+//        }
 
-        MobileCore.registerExtensions(listOf(PerfExtension::class.java)) {
-
+        MobileCore.initializeSDK(
+            InitOptions.Builder()
+                .application(this)
+                .appId("your app id")
+                .logLevel(LoggingMode.VERBOSE)
+                .disableLifecycleStart(false)
+                .thirdPartyExtensions(listOf(PerfExtension::class.java))
+                .build()
+        ) {
+            Log.debug("test_app", "onCreate", "AEP Mobile SDK is initialized")
         }
     }
 

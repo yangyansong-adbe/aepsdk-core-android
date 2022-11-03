@@ -23,9 +23,24 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.app.kotlin.ui.theme.AepsdkcoreandroidTheme
 
 class MainActivity : ComponentActivity() {
+
+    @Suppress("RedundantOverride")
+    override fun onResume() {
+        super.onResume()
+//        MobileCore.lifecycleStart(null)
+    }
+
+    @Suppress("RedundantOverride")
+    override fun onPause() {
+        super.onPause()
+//        MobileCore.lifecyclePause()
+    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {

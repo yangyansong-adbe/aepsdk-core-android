@@ -16,6 +16,7 @@ import androidx.annotation.Nullable;
 
 import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.simplification.internal.AdobeExtensions;
 
 import java.util.Map;
 
@@ -23,6 +24,7 @@ import java.util.Map;
  * Abstract class that defines an {@code Extension}
  *
  */
+@AdobeExtensions
 public abstract class Extension {
 	private final @NonNull ExtensionApi extensionApi;
 
