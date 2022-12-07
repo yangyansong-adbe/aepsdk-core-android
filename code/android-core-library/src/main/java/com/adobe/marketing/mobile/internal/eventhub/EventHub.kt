@@ -86,7 +86,8 @@ internal class EventHub(val eventHistory: EventHistory?) {
      * Concurrent list which stores the registered event preprocessors.
      * Preprocessors will be executed on each event before distributing it to extension queue.
      */
-    private val eventPreprocessors: ConcurrentLinkedQueue<EventPreprocessor> = ConcurrentLinkedQueue()
+    private val eventPreprocessors: ConcurrentLinkedQueue<EventPreprocessor> =
+        ConcurrentLinkedQueue()
 
     /**
      * Atomic counter which is incremented when processing event and shared state.
@@ -226,7 +227,11 @@ internal class EventHub(val eventHistory: EventHistory?) {
     fun start(completion: (() -> Unit)? = null) {
         eventHubExecutor.submit {
             if (hubStartReceived) {
-                Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Dropping start call as it was already received")
+                Log.debug(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "Dropping start call as it was already received"
+                )
                 return@submit
             }
 
@@ -247,7 +252,11 @@ internal class EventHub(val eventHistory: EventHistory?) {
             return
         }
 
-        Log.trace(CoreConstants.LOG_TAG, LOG_TAG, "EventHub started. Will begin processing events")
+        Log.trace(CoreConstants.LOG_TAG, LOG_TAG,
+            mapOf(
+                "operation" to "EventHub started"
+            ),
+            "EventHub started. Will begin processing events")
 
         this.hubStarted = true
         this.eventDispatcher.start()
@@ -286,6 +295,9 @@ internal class EventHub(val eventHistory: EventHistory?) {
             Log.warning(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
+                mapOf(
+                    "operation" to "dispatch event($eventNumber)"
+                ),
                 "Failed to dispatch event #$eventNumber - ($event)"
             )
         }
@@ -345,13 +357,24 @@ internal class EventHub(val eventHistory: EventHistory?) {
      * @param extensionClass The class of extension to register
      * @param error Error denoting the status of registration
      */
-    private fun extensionPostRegistration(extensionClass: Class<out Extension>, error: EventHubError) {
+    private fun extensionPostRegistration(
+        extensionClass: Class<out Extension>,
+        error: EventHubError
+    ) {
 
         if (error != EventHubError.None) {
-            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass registration failed with error $error")
+            Log.debug(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
+                "Extension $extensionClass registration failed with error $error"
+            )
             unregisterExtensionInternal(extensionClass)
         } else {
-            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass registered successfully")
+            Log.debug(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
+                "Extension $extensionClass registered successfully"
+            )
             shareEventHubSharedState()
         }
 
@@ -385,15 +408,24 @@ internal class EventHub(val eventHistory: EventHistory?) {
         if (container != null) {
             container.shutdown()
             shareEventHubSharedState()
-            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass unregistered successfully")
+            Log.debug(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
+                "Extension $extensionClass unregistered successfully"
+            )
             error = EventHubError.None
         } else {
-            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass unregistration failed as extension was not registered")
+            Log.debug(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
+                "Extension $extensionClass unregistration failed as extension was not registered"
+            )
             error = EventHubError.ExtensionNotRegistered
         }
 
         completion.let { executeCompletionHandler { it?.invoke(error) } }
     }
+
     /**
      * Registers an event listener which will be invoked when the response event to trigger event is dispatched
      * @param triggerEvent An [Event] which will trigger a response event
@@ -529,6 +561,12 @@ internal class EventHub(val eventHistory: EventHistory?) {
             Log.debug(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
+                mapOf(
+                    "operation" to "create $sharedStateType shared state",
+                    "extension" to extensionName,
+                    "shared_state" to state,
+                    "shared_state_version" to version
+                ),
                 "Created $sharedStateType shared state for extension $extensionName with version $version and data ${state?.prettify()}"
             )
             dispatchSharedStateEvent(sharedStateType, extensionName)
@@ -635,6 +673,9 @@ internal class EventHub(val eventHistory: EventHistory?) {
             Log.debug(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
+                mapOf(
+                    "operation" to "Resolved pending shared state"
+                ),
                 "Resolved pending $sharedStateType shared state for $extensionName and version $version with data ${immutableState?.prettify()}"
             )
             dispatchSharedStateEvent(sharedStateType, extensionName)
@@ -787,11 +828,11 @@ internal class EventHub(val eventHistory: EventHistory?) {
     private fun getExtensionContainer(extensionName: String): ExtensionContainer? {
         val extensionContainer = registeredExtensions.entries.firstOrNull {
             return@firstOrNull (
-                it.value.sharedStateName?.equals(
-                    extensionName,
-                    true
-                ) ?: false
-                )
+                    it.value.sharedStateName?.equals(
+                        extensionName,
+                        true
+                    ) ?: false
+                    )
         }
         return extensionContainer?.value
     }

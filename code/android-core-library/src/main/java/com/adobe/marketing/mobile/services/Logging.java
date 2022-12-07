@@ -10,14 +10,24 @@
  */
 package com.adobe.marketing.mobile.services;
 
+import java.util.Map;
+
 public interface Logging {
 
 	void trace(String tag, String message);
 
+	void trace(String tag, String message, Map<String, Object> metaData);
+
 	void debug(String tag, String message);
+
+	void debug(String tag, String message, Map<String, Object> metaData);
 
 	void warning(String tag, String message);
 
+	void warning(String tag, String message, Map<String, Object> metaData);
+
 	void error(String tag, String message);
+
+	void error(String tag, String message, Map<String, Object> metaData);
 
 }

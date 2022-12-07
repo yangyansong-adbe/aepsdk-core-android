@@ -145,6 +145,9 @@ internal class ConfigurationExtension : Extension {
             Log.trace(
                 TAG,
                 TAG,
+                mapOf(
+                    "operation" to "empty caches"
+                ),
                 "Initial configuration loaded is empty."
             )
         }
@@ -178,6 +181,12 @@ internal class ConfigurationExtension : Extension {
         ) {
             retrieveSDKIdentifiers(it)
         }
+        Log.trace(
+            TAG,
+            TAG,
+            mapOf("operation" to "onRegistered"),
+            ""
+        )
     }
 
     override fun getName(): String {
@@ -232,7 +241,12 @@ internal class ConfigurationExtension : Extension {
     private fun configureWithAppID(event: Event, sharedStateResolver: SharedStateResolver) {
         val appId =
             event.eventData?.get(CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID) as? String
-
+        Log.trace(
+            TAG,
+            TAG,
+            mapOf("operation" to "configureWithAppID($appId)"),
+            ""
+        )
         if (appId.isNullOrBlank()) {
             Log.trace(
                 TAG,

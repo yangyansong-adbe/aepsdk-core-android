@@ -40,6 +40,14 @@ internal class AppIdManager {
         }
 
         configStateStoreCollection?.setString(ConfigurationStateManager.PERSISTED_APPID, appId)
+        Log.trace(
+            ConfigurationExtension.TAG,
+            LOG_TAG,
+            mapOf(
+                "operation" to "($appId) is saved to persistence"
+            ),
+            ""
+        )
     }
 
     /**
@@ -63,6 +71,9 @@ internal class AppIdManager {
                 Log.trace(
                     ConfigurationExtension.TAG,
                     LOG_TAG,
+                    mapOf(
+                        "operation" to "Retrieved AppId from persistence"
+                    ),
                     "Retrieved AppId from persistence."
                 )
             }

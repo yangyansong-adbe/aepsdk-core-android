@@ -160,6 +160,13 @@ final public class IdentityExtension extends Extension {
                 EventSource.RESPONSE_CONTENT,
                 this::handleConfiguration);
         boot();
+        Log.trace(
+                IdentityConstants.LOG_TAG, LOG_SOURCE, new HashMap<String, Object>() {
+                    {
+                        put("operation", "onRegistered");
+                    }
+                },
+                "");
     }
 
     @Override
@@ -173,6 +180,10 @@ final public class IdentityExtension extends Extension {
         if (!hasValidSharedState(IdentityConstants.EventDataKeys.Configuration.MODULE_NAME, event)) {
             Log.trace(
                     IdentityConstants.LOG_TAG, LOG_SOURCE,
+                    new HashMap<String, Object>() {{
+                        put("operation", "not readyForEvent");
+                        put("event", event.toString());
+                    }},
                     "Waiting for the Configuration shared state to get required configuration fields before processing [event: %s].",
                     event.getName());
             return false;
@@ -237,7 +248,11 @@ final public class IdentityExtension extends Extension {
 
         final Event forcedSyncEvent = createForcedSyncEvent();
         processIdentityRequest(forcedSyncEvent);
-        Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE, "bootup : Added an Identity force sync event on boot.");
+        Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
+                new HashMap<String, Object>() {{
+                    put("operation", "force sync on boot");
+                }},
+                "bootup : Added an Identity force sync event on boot.");
 
         // Identity should always share its state
         // However, don't create a shared state twice, which will log an error
@@ -552,6 +567,9 @@ final public class IdentityExtension extends Extension {
         customerIds = newCustomerIDs == null || newCustomerIDs.isEmpty() ? null : newCustomerIDs;
         int customerIdsSize = newCustomerIDs == null || newCustomerIDs.isEmpty() ? 0 : customerIds.size();
         Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
+                new HashMap<String, Object>() {{
+                    put("operation", "load caches - " + customerIdsSize);
+                }},
                 "Load the store VisitorIDs from persistence: size = %s", customerIdsSize);
         locationHint = namedCollection.getString(IdentityConstants.DataStoreKeys.LOCATION_HINT, null);
         blob = namedCollection.getString(IdentityConstants.DataStoreKeys.BLOB, null);

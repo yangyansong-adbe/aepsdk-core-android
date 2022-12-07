@@ -11,8 +11,11 @@
 package com.adobe.marketing.mobile.services;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.adobe.marketing.mobile.LoggingMode;
+
+import java.util.Map;
 
 /**
  * Logging class to handle log levels and platform-specific log output
@@ -70,6 +73,17 @@ public class Log {
         }
     }
 
+    public static void trace(@NonNull final String extension, @NonNull final String source, @NonNull final Map<String, Object> metaData, @NonNull final String format, final Object... params) {
+        Logging loggingService = ServiceProvider.getInstance().getLoggingService();
+        if (loggingService != null && loggingMode.id >= LoggingMode.VERBOSE.id) {
+            try {
+                loggingService.trace(extension + "/" + source, String.format(format, params), metaData);
+            } catch (Exception e) {
+                loggingService.trace(source, format);
+            }
+        }
+    }
+
     /**
      * Information provided to the debug method should contain high-level details about the data being processed.
      * Prints information to the console only when the SDK is in LoggingMode: VERBOSE, DEBUG
@@ -85,6 +99,17 @@ public class Log {
         if (loggingService != null && loggingMode.id >= LoggingMode.DEBUG.id) {
             try {
                 loggingService.debug(extension + "/" + source, String.format(format, params));
+            } catch (Exception e) {
+                loggingService.debug(source, format);
+            }
+        }
+    }
+
+    public static void debug(@NonNull final String extension, @NonNull final String source, @NonNull final Map<String, Object> metaData, @NonNull final String format, final Object... params) {
+        Logging loggingService = ServiceProvider.getInstance().getLoggingService();
+        if (loggingService != null && loggingMode.id >= LoggingMode.DEBUG.id) {
+            try {
+                loggingService.debug(extension + "/" + source, String.format(format, params), metaData);
             } catch (Exception e) {
                 loggingService.debug(source, format);
             }
@@ -114,6 +139,18 @@ public class Log {
         }
     }
 
+    public static void warning(@NonNull final String extension, @NonNull final String source, @NonNull final Map<String, Object> metaData, @NonNull final String format, final Object... params) {
+        Logging loggingService = ServiceProvider.getInstance().getLoggingService();
+        if (loggingService != null && loggingMode.ordinal() >= LoggingMode.WARNING.id) {
+            try {
+                loggingService.warning(extension + "/" + source, String.format(format, params), metaData);
+            } catch (Exception e) {
+                loggingService.warning(source, format);
+            }
+        }
+    }
+
+
     /**
      * Information provided to the error method indicates that there has been an unrecoverable error.
      * Prints information to the console regardless of current LoggingMode of the SDK.
@@ -135,4 +172,14 @@ public class Log {
         }
     }
 
+    public static void error(@NonNull final String extension, @NonNull final String source, @NonNull final Map<String, Object> metaData, @NonNull final String format, final Object... params) {
+        Logging loggingService = ServiceProvider.getInstance().getLoggingService();
+        if (loggingService != null && loggingMode.ordinal() >= LoggingMode.ERROR.id) {
+            try {
+                loggingService.error(extension + "/" + source, String.format(format, params), metaData);
+            } catch (Exception e) {
+                loggingService.error(source, format);
+            }
+        }
+    }
 }

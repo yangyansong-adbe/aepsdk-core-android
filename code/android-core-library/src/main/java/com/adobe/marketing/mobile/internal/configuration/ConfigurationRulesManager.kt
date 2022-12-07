@@ -121,6 +121,10 @@ internal class ConfigurationRulesManager {
             Log.trace(
                 ConfigurationExtension.TAG,
                 LOG_TAG,
+                mapOf(
+                    "operation" to "loaded remote rules",
+                    "rules_url" to url
+                ),
                 "Rule Download result: $reason"
             )
 
@@ -128,6 +132,9 @@ internal class ConfigurationRulesManager {
                 Log.debug(
                     ConfigurationExtension.TAG,
                     LOG_TAG,
+                    mapOf(
+                        "operation" to "remote rule is not modified"
+                    ),
                     "Rules from $url have not been modified. Will not apply rules."
                 )
             } else {
@@ -199,6 +206,10 @@ internal class ConfigurationRulesManager {
             Log.trace(
                 ConfigurationExtension.TAG,
                 LOG_TAG,
+                mapOf(
+                    "operation" to "replace rules",
+                    "rulesJson" to rulesJson
+                ),
                 "Replacing rules."
             )
             launchRulesEvaluator.replaceRules(rules)
