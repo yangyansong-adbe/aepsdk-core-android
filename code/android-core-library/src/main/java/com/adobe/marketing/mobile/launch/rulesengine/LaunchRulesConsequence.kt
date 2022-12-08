@@ -91,7 +91,7 @@ internal class LaunchRulesConsequence(
                             logTag,
                             "processDispatchConsequence - Dispatching event - ${dispatchEvent.uniqueIdentifier}"
                         )
-                        extensionApi.dispatch(dispatchEvent)
+                        extensionApi.dispatch(event, dispatchEvent)
                         dispatchChainedEventsCount[dispatchEvent.uniqueIdentifier] = dispatchChainCount + 1
                     }
                     else -> {
@@ -101,7 +101,7 @@ internal class LaunchRulesConsequence(
                             logTag,
                             "evaluateRulesConsequence - Dispatching consequence event ${consequenceEvent.uniqueIdentifier}"
                         )
-                        extensionApi.dispatch(consequenceEvent)
+                        extensionApi.dispatch(event, consequenceEvent)
                     }
                 }
             }

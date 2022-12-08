@@ -244,7 +244,10 @@ internal class ConfigurationExtension : Extension {
         Log.trace(
             TAG,
             TAG,
-            mapOf("operation" to "configureWithAppID($appId)"),
+            mapOf(
+                "operation" to "configureWithAppID",
+                "appId" to appId
+            ),
             ""
         )
         if (appId.isNullOrBlank()) {

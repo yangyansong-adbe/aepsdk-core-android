@@ -44,7 +44,8 @@ internal class AppIdManager {
             ConfigurationExtension.TAG,
             LOG_TAG,
             mapOf(
-                "operation" to "($appId) is saved to persistence"
+                "operation" to "save appId to persistence",
+                "appId" to appId
             ),
             ""
         )

@@ -295,9 +295,6 @@ internal class EventHub(val eventHistory: EventHistory?) {
             Log.warning(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
-                mapOf(
-                    "operation" to "dispatch event($eventNumber)"
-                ),
                 "Failed to dispatch event #$eventNumber - ($event)"
             )
         }
@@ -306,6 +303,11 @@ internal class EventHub(val eventHistory: EventHistory?) {
             Log.debug(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
+                mapOf(
+                    "operation" to "dispatch event($eventNumber)",
+                    "event_number" to eventNumber,
+                    "event_uuid" to event.uniqueIdentifier
+                ),
                 "Dispatching Event #$eventNumber - ($event)"
             )
         }
@@ -562,7 +564,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
                 mapOf(
-                    "operation" to "create $sharedStateType shared state",
+                    "operation" to "$sharedStateType shared state",
                     "extension" to extensionName,
                     "shared_state" to state,
                     "shared_state_version" to version

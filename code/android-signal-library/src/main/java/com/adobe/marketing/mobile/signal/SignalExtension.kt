@@ -138,6 +138,7 @@ class SignalExtension : Extension {
         val timeout = event.timeout()
         val dataEntity = SignalHit(url, body, contentType, timeout).toDataEntity()
         hitQueue.queue(dataEntity)
+        api.handle(event)
     }
 
     private fun shouldIgnore(event: Event): Boolean {
