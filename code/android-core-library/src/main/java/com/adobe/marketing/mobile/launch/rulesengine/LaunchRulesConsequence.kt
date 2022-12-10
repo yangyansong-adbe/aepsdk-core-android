@@ -30,6 +30,7 @@ internal class LaunchRulesConsequence(
 
     private val logTag = "LaunchRulesConsequence"
     private var dispatchChainedEventsCount = mutableMapOf<String, Int>()
+
     companion object {
         private const val LAUNCH_RULE_TOKEN_LEFT_DELIMITER = "{%"
         private const val LAUNCH_RULE_TOKEN_RIGHT_DELIMITER = "%}"
@@ -38,6 +39,7 @@ internal class LaunchRulesConsequence(
         private const val CONSEQUENCE_TYPE_DISPATCH = "dispatch"
         private const val CONSEQUENCE_DETAIL_ACTION_COPY = "copy"
         private const val CONSEQUENCE_DETAIL_ACTION_NEW = "new"
+
         // Do not process Dispatch consequence if chained event count is greater than max
         private const val MAX_CHAINED_CONSEQUENCE_COUNT = 1
         private const val CONSEQUENCE_DISPATCH_EVENT_NAME = "Dispatch Consequence Result"
@@ -76,8 +78,8 @@ internal class LaunchRulesConsequence(
                                 LaunchRulesEngineConstants.LOG_TAG,
                                 logTag,
                                 "Unable to process dispatch consequence, max chained " +
-                                    "dispatch consequences limit of $MAX_CHAINED_CONSEQUENCE_COUNT" +
-                                    "met for this event uuid ${event.uniqueIdentifier}"
+                                        "dispatch consequences limit of $MAX_CHAINED_CONSEQUENCE_COUNT" +
+                                        "met for this event uuid ${event.uniqueIdentifier}"
                             )
                             continue
                         }
@@ -89,19 +91,31 @@ internal class LaunchRulesConsequence(
                         Log.trace(
                             LaunchRulesEngineConstants.LOG_TAG,
                             logTag,
+                            mapOf(
+                                "operation" to "Consequence event",
+                                "trigger_event_uuid" to event.uniqueIdentifier,
+                                "event_uuid" to dispatchEvent.uniqueIdentifier
+                            ),
                             "processDispatchConsequence - Dispatching event - ${dispatchEvent.uniqueIdentifier}"
                         )
-                        extensionApi.dispatch(event, dispatchEvent)
-                        dispatchChainedEventsCount[dispatchEvent.uniqueIdentifier] = dispatchChainCount + 1
+                        extensionApi.dispatch(dispatchEvent)
+                        dispatchChainedEventsCount[dispatchEvent.uniqueIdentifier] =
+                            dispatchChainCount + 1
                     }
                     else -> {
-                        val consequenceEvent = generateConsequenceEvent(consequenceWithConcreteValue)
+                        val consequenceEvent =
+                            generateConsequenceEvent(consequenceWithConcreteValue)
                         Log.trace(
                             LaunchRulesEngineConstants.LOG_TAG,
                             logTag,
+                            mapOf(
+                                "operation" to "Consequence event",
+                                "trigger_event_uuid" to event.uniqueIdentifier,
+                                "event_uuid" to consequenceEvent.uniqueIdentifier
+                            ),
                             "evaluateRulesConsequence - Dispatching consequence event ${consequenceEvent.uniqueIdentifier}"
                         )
-                        extensionApi.dispatch(event, consequenceEvent)
+                        extensionApi.dispatch(consequenceEvent)
                     }
                 }
             }
@@ -116,12 +130,18 @@ internal class LaunchRulesConsequence(
      * @param tokenFinder [TokenFinder] instance which replaces the tokens with values
      * @return the [RuleConsequence] with replaced tokens
      */
-    private fun replaceToken(consequence: RuleConsequence, tokenFinder: TokenFinder): RuleConsequence {
+    private fun replaceToken(
+        consequence: RuleConsequence,
+        tokenFinder: TokenFinder
+    ): RuleConsequence {
         val tokenReplacedMap = replaceToken(consequence.detail, tokenFinder)
         return RuleConsequence(consequence.id, consequence.type, tokenReplacedMap)
     }
 
-    private fun replaceToken(detail: Map<String, Any?>?, tokenFinder: TokenFinder): Map<String, Any?>? {
+    private fun replaceToken(
+        detail: Map<String, Any?>?,
+        tokenFinder: TokenFinder
+    ): Map<String, Any?>? {
         if (detail.isNullOrEmpty())
             return null
         val mutableDetail = detail.toMutableMap()
@@ -139,7 +159,10 @@ internal class LaunchRulesConsequence(
     }
 
     private fun replaceToken(value: String, tokenFinder: TokenFinder): String {
-        val template = Template(value, DelimiterPair(LAUNCH_RULE_TOKEN_LEFT_DELIMITER, LAUNCH_RULE_TOKEN_RIGHT_DELIMITER))
+        val template = Template(
+            value,
+            DelimiterPair(LAUNCH_RULE_TOKEN_LEFT_DELIMITER, LAUNCH_RULE_TOKEN_RIGHT_DELIMITER)
+        )
         return template.render(tokenFinder, LaunchRuleTransformer.createTransforming())
     }
 
@@ -153,7 +176,10 @@ internal class LaunchRulesConsequence(
      * @return [Map] with the [RuleConsequence] data attached to the triggering event data, or
      * null if the processing fails
      */
-    private fun processAttachDataConsequence(consequence: RuleConsequence, eventData: Map<String, Any?>?): Map<String, Any?>? {
+    private fun processAttachDataConsequence(
+        consequence: RuleConsequence,
+        eventData: Map<String, Any?>?
+    ): Map<String, Any?>? {
         val from = EventDataUtils.castFromGenericType(consequence.eventData) ?: run {
             Log.error(
                 LaunchRulesEngineConstants.LOG_TAG,
@@ -191,7 +217,10 @@ internal class LaunchRulesConsequence(
      * @return [Map] with the Event data modified with the [RuleConsequence] data, or
      * null if the processing fails
      */
-    private fun processModifyDataConsequence(consequence: RuleConsequence, eventData: Map<String, Any?>?): Map<String, Any?>? {
+    private fun processModifyDataConsequence(
+        consequence: RuleConsequence,
+        eventData: Map<String, Any?>?
+    ): Map<String, Any?>? {
         val from = EventDataUtils.castFromGenericType(consequence.eventData) ?: run {
             Log.error(
                 LaunchRulesEngineConstants.LOG_TAG,
@@ -226,7 +255,10 @@ internal class LaunchRulesConsequence(
      * @param eventData the triggering Event data
      * @return a new [Event] to be dispatched to the [EventHub], or null if the processing failed.
      */
-    private fun processDispatchConsequence(consequence: RuleConsequence, eventData: Map<String, Any?>?): Event? {
+    private fun processDispatchConsequence(
+        consequence: RuleConsequence,
+        eventData: Map<String, Any?>?
+    ): Event? {
         val type = consequence.eventType ?: run {
             Log.error(
                 LaunchRulesEngineConstants.LOG_TAG,

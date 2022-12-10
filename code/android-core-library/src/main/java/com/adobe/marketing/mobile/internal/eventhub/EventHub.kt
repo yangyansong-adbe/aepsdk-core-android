@@ -304,7 +304,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
                 mapOf(
-                    "operation" to "dispatch event($eventNumber)",
+                    "operation" to "Event($eventNumber)",
                     "event_number" to eventNumber,
                     "event_uuid" to event.uniqueIdentifier
                 ),
@@ -564,7 +564,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
                 mapOf(
-                    "operation" to "$sharedStateType shared state",
+                    "operation" to "$sharedStateType state",
                     "extension" to extensionName,
                     "shared_state" to state,
                     "shared_state_version" to version

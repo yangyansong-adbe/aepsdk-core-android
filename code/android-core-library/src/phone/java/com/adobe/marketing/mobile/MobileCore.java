@@ -769,6 +769,11 @@ final public class MobileCore {
         Event event = new Event.Builder("Analytics Track", EventType.GENERIC_TRACK, EventSource.REQUEST_CONTENT)
                 .setEventData(eventData).build();
         dispatchEvent(event);
+        Log.debug(CoreConstants.LOG_TAG, LOG_TAG,new HashMap<String, Object>() {{
+            put("operation", "API: trackAction");
+            put("trigger_event_uuid", "");
+            put("event_uuid", event.getUniqueIdentifier());
+        }}, "dispatchEvent failed - event is null");
     }
 
     /**

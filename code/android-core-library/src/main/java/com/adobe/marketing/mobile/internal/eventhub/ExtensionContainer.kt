@@ -133,15 +133,6 @@ internal class ExtensionContainer constructor(
         eventProcessor.setInitialJob(initJob)
         eventProcessor.setFinalJob(teardownJob)
         eventProcessor.start()
-
-        Log.debug(
-            CoreConstants.LOG_TAG,
-            getTag(),
-            mapOf(
-                "operation" to "ExtensionContainer(${extensionClass.simpleName})"
-            ),
-            "ExtensionContainer started processing events"
-        )
     }
 
     fun shutdown() {

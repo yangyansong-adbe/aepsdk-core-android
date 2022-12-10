@@ -250,7 +250,7 @@ final public class IdentityExtension extends Extension {
         processIdentityRequest(forcedSyncEvent);
         Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
                 new HashMap<String, Object>() {{
-                    put("operation", "force sync on boot");
+                    put("operation", "force sync");
                 }},
                 "bootup : Added an Identity force sync event on boot.");
 
@@ -568,7 +568,7 @@ final public class IdentityExtension extends Extension {
         int customerIdsSize = newCustomerIDs == null || newCustomerIDs.isEmpty() ? 0 : customerIds.size();
         Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
                 new HashMap<String, Object>() {{
-                    put("operation", "load caches - " + customerIdsSize);
+                    put("operation", customerIdsSize + " cached vids");
                 }},
                 "Load the store VisitorIDs from persistence: size = %s", customerIdsSize);
         locationHint = namedCollection.getString(IdentityConstants.DataStoreKeys.LOCATION_HINT, null);

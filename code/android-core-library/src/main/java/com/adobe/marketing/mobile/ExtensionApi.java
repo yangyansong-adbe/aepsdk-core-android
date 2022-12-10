@@ -42,18 +42,9 @@ public abstract class ExtensionApi {
      */
     public abstract void dispatch(@NonNull final Event event);
 
-    public void dispatch(@NonNull final Event triggerEvent, @NonNull final Event event) {
-        Log.debug("X", "X", new HashMap<String, Object>() {{
-            put("operation", "Event tracking");
-            put("trigger_event_uuid", triggerEvent.getUniqueIdentifier());
-            put("event_uuid", event.getUniqueIdentifier());
-        }}, "trigger_event_uuid = " + triggerEvent.getUniqueIdentifier() + ", event_uuid = " + event.getUniqueIdentifier());
-        this.dispatch(event);
-    }
-
     public void handle(@NonNull final Event triggerEvent){
         Log.debug("X", "X", new HashMap<String, Object>() {{
-            put("operation", "Event tracking (end)");
+            put("operation", "Event tracking");
             put("trigger_event_uuid", triggerEvent.getUniqueIdentifier());
             put("event_uuid", "");
         }}, "trigger_event_uuid = " + triggerEvent.getUniqueIdentifier() + ", event_uuid = null");

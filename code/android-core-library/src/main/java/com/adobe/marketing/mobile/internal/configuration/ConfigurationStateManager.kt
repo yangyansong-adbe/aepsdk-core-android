@@ -314,9 +314,6 @@ internal class ConfigurationStateManager {
         Log.trace(
             ConfigurationExtension.TAG,
             LOG_TAG,
-            mapOf(
-                "operation" to "Attempting to load cached config"
-            ),
             "Attempting to load cached config."
         )
 
@@ -332,6 +329,9 @@ internal class ConfigurationStateManager {
             Log.trace(
                 ConfigurationExtension.TAG,
                 LOG_TAG,
+                mapOf(
+                    "operation" to "No cached config"
+                ),
                 "Cached config is null/empty."
             )
             return null
@@ -430,7 +430,7 @@ internal class ConfigurationStateManager {
             ConfigurationExtension.TAG,
             LOG_TAG,
             mapOf(
-                "operation" to "Replace configuration",
+                "operation" to "Replace config",
                 "newConfig" to config,
                 "mergedConfig" to currentConfiguration
             ),

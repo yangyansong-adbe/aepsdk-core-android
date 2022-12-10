@@ -44,7 +44,7 @@ internal class AppIdManager {
             ConfigurationExtension.TAG,
             LOG_TAG,
             mapOf(
-                "operation" to "save appId to persistence",
+                "operation" to "store appId",
                 "appId" to appId
             ),
             ""
@@ -83,7 +83,7 @@ internal class AppIdManager {
                 Log.trace(
                     ConfigurationExtension.TAG,
                     LOG_TAG,
-                    "Retrieved AppId from manifest."
+                    "cache appId"
                 )
                 saveAppIdToPersistence(it)
             }
