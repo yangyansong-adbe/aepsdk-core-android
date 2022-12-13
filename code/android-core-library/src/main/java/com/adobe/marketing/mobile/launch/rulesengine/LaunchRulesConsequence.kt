@@ -111,7 +111,8 @@ internal class LaunchRulesConsequence(
                             mapOf(
                                 "operation" to "Consequence event",
                                 "trigger_event_uuid" to event.uniqueIdentifier,
-                                "event_uuid" to consequenceEvent.uniqueIdentifier
+                                "event_uuid" to consequenceEvent.uniqueIdentifier,
+                                "consequence_event_data" to consequenceEvent.eventData
                             ),
                             "evaluateRulesConsequence - Dispatching consequence event ${consequenceEvent.uniqueIdentifier}"
                         )

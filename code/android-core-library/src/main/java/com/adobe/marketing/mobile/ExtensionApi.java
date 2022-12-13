@@ -47,6 +47,7 @@ public abstract class ExtensionApi {
             put("operation", "Event tracking");
             put("trigger_event_uuid", triggerEvent.getUniqueIdentifier());
             put("event_uuid", "");
+            put("trigger_event_data",triggerEvent.getEventData());
         }}, "trigger_event_uuid = " + triggerEvent.getUniqueIdentifier() + ", event_uuid = null");
     }
 
