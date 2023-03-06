@@ -1,2 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.adobe.marketing.mobile.lifecycle" />
+  package="com.adobe.marketing.mobile.lifecycle">
+
+  <application>
+    <service
+      android:exported="false"
+      android:name="com.adobe.marketing.mobile.internal.ExtensionRegistrationService">
+      <meta-data
+        android:name="com.adobe.marketing.mobile:lifecycle"
+        android:value="com.adobe.marketing.mobile.lifecycle.LifecycleExtension" />
+    </service>
+  </application>
+</manifest>

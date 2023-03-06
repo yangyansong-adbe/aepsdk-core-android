@@ -11,7 +11,7 @@
 
 package com.adobe.marketing.mobile.internal
 
-internal object CoreConstants {
+object CoreConstants {
     const val LOG_TAG = "MobileCore"
     const val VERSION = "2.0.1"
 

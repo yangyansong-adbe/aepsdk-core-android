@@ -13,11 +13,17 @@ package com.adobe.marketing.mobile;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.content.pm.ServiceInfo;
+import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import com.adobe.marketing.mobile.internal.AppResourceStore;
 import com.adobe.marketing.mobile.internal.CoreConstants;
+import com.adobe.marketing.mobile.internal.ExtensionRegistrationService;
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension;
 import com.adobe.marketing.mobile.internal.eventhub.EventHub;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants;

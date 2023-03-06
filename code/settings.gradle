@@ -20,3 +20,4 @@ include ':integration-tests',
         ':test-third-party-extension',
         ':macrobenchmark',
         ':microbenchmark'
+include ':core-ktx'
