@@ -9,6 +9,7 @@
 
 rootProject.name = 'aepsdk-core-android'
 include ':core',
+        ':core-ktx',
         ':lifecycle',
         ':identity',
         ':signal'

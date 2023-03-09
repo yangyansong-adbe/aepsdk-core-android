@@ -1,2 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.adobe.marketing.mobile.signal" />
+  package="com.adobe.marketing.mobile.signal">
+
+  <application>
+    <service
+      android:exported="false"
+      android:name="com.adobe.marketing.mobile.internal.ExtensionRegistrationService">
+      <meta-data
+        android:name="com.adobe.marketing.mobile:signal"
+        android:value="com.adobe.marketing.mobile.signal.internal.SignalExtension" />
+    </service>
+  </application>
+</manifest>
