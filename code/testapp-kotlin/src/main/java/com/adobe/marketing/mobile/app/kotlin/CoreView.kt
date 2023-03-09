@@ -180,7 +180,7 @@ private fun updateConfiguration() {
         showAlert(event)
     }
 
-    MobileCore.updateConfiguration(mapOf("'global.privacy" to "optedout"))
+    MobileCore.updateConfiguration(mapOf("global.privacy" to "optedout"))
 }
 
 private fun clearUpdatedConfiguration() {

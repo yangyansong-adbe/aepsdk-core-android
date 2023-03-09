@@ -7,7 +7,7 @@
       android:name="com.adobe.marketing.mobile.internal.ExtensionRegistrationService">
       <meta-data
         android:name="com.adobe.marketing.mobile:signal"
-        android:value="com.adobe.marketing.mobile.signal.SignalExtension" />
+        android:value="com.adobe.marketing.mobile.signal.internal.SignalExtension" />
     </service>
   </application>
 </manifest>

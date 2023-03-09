@@ -11,13 +11,12 @@ rootProject.name = 'aepsdk-core-android'
 include ':core',
         ':lifecycle',
         ':identity',
-        ':signal'
-
-include ':testapp',
-        ':testapp-kotlin'
-
-include ':integration-tests',
+        ':signal',
+        ':testapp',
+        ':testapp-kotlin',
+        ':integration-tests',
         ':test-third-party-extension',
         ':macrobenchmark',
-        ':microbenchmark'
-include ':core-ktx'
+        ':microbenchmark',
+        ':core-ktx',
+        ':sdk-bom'

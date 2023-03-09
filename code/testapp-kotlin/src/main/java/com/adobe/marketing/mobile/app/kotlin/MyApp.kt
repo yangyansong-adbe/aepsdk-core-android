@@ -11,24 +11,30 @@
 package com.adobe.marketing.mobile.app.kotlin
 
 import android.app.Application
-import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.Identity
-import com.adobe.marketing.mobile.Lifecycle
 import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.Signal
-import com.adobe.marketing.mobile.app.kotlin.extension.PerfExtension
+import com.adobe.marketing.mobile.core.ktx.MobileCore
+import com.adobe.marketing.mobile.core.ktx.start
+import com.adobe.marketing.mobile.core.ktx.trackState
+import com.adobe.marketing.mobile.services.Log
 
 class MyApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        MobileCore.setApplication(this)
-        MobileCore.setLogLevel(LoggingMode.VERBOSE)
-        // MobileCore.configureWithAppID("YOUR_APP_ID")
-        val extensions = listOf(Identity.EXTENSION, Signal.EXTENSION, Lifecycle.EXTENSION, PerfExtension::class.java)
-        MobileCore.registerExtensions(extensions) {
 
+        MobileCore.start(this) {
+            logLevel(LoggingMode.VERBOSE)
+            appId("App_ID")
+            updateConfiguration(mapOf("global.privacy" to "optedout"))
+//            registerExtensions(listOf(PerfExtension::class.java)) {}
+            registerExtensions {
+                Log.debug("tag", "MyApp", "SDK has started.")
+            }
         }
+
+        MobileCore.trackState("state_1")
+        MobileCore.trackState("state_1", mapOf("key" to "value"))
+
     }
 
 }

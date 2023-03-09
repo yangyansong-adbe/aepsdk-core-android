@@ -38,12 +38,17 @@ fun MobileCore.start(application: Application, init: InitOptions.() -> Unit) {
 class InitOptions {
     fun appId(appId: String) = com.adobe.marketing.mobile.MobileCore.configureWithAppID(appId)
     fun logLevel(level: LoggingMode) = com.adobe.marketing.mobile.MobileCore.setLogLevel(level)
-    fun configureWithFileInAssets(fileName: String) =
+    fun configureFileInAssets(fileName: String) =
         com.adobe.marketing.mobile.MobileCore.configureWithFileInAssets(fileName)
 
-    fun completionHandler(handler: AdobeCallback<*>) {
-        MobileCore.lifecycleStart(null)
-        registerExtensions(handler)
+    fun updateConfiguration(configMap: Map<String, Any>) =
+        com.adobe.marketing.mobile.MobileCore.updateConfiguration(configMap)
+
+    fun registerExtensions(
+        extensions: List<Class<out Extension?>> = emptyList(),
+        completionHandler: AdobeCallback<*>
+    ) {
+        registerExtensionsInternal(extensions, completionHandler)
     }
 }
 
@@ -52,9 +57,26 @@ fun MobileCore.lifecycleStart(additionalContextData: Map<String, String>?) =
 
 fun MobileCore.lifecyclePause() = com.adobe.marketing.mobile.MobileCore.lifecyclePause()
 
+fun MobileCore.updateConfiguration(configMap: Map<String, Any?>) =
+    com.adobe.marketing.mobile.MobileCore.updateConfiguration(configMap)
 
-private fun registerExtensions(completionCallback: AdobeCallback<*>?) {
-    val allExtensions = loadAllExtensions()
+fun MobileCore.trackAction(
+    action: String, contextData: Map<String, String?> = emptyMap()
+) = com.adobe.marketing.mobile.MobileCore.trackAction(action, contextData)
+
+fun MobileCore.trackState(
+    state: String, contextData: Map<String, String?> = emptyMap()
+) = com.adobe.marketing.mobile.MobileCore.trackState(state, contextData)
+
+private fun registerExtensionsInternal(
+    extensions: List<Class<out Extension?>>,
+    completionCallback: AdobeCallback<*>?
+) {
+    val allExtensions = loadAllExtensions().toMutableList()
+    if (extensions.isNotEmpty()) {
+        allExtensions += extensions
+    }
+
     com.adobe.marketing.mobile.MobileCore.registerExtensions(allExtensions, completionCallback)
 }
 
