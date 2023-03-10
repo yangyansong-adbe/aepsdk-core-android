@@ -19,13 +19,25 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import com.adobe.marketing.mobile.AdobeCallback
 import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.LoggingMode
+import com.adobe.marketing.mobile.MobilePrivacyStatus
 import com.adobe.marketing.mobile.internal.ExtensionRegistrationService
 import com.adobe.marketing.mobile.services.Log
+import com.adobe.marketing.mobile.services.MessagingDelegate
 import com.adobe.marketing.mobile.services.ServiceProvider
 
 object MobileCore {
     val EXTENSION_VERSION: String
         get() = com.adobe.marketing.mobile.MobileCore.extensionVersion()
+
+    var logLevel: LoggingMode
+        get() = com.adobe.marketing.mobile.MobileCore.getLogLevel()
+        set(mode) = com.adobe.marketing.mobile.MobileCore.setLogLevel(mode)
+
+    var messageDelegate: MessagingDelegate?
+        get() = com.adobe.marketing.mobile.MobileCore.getMessagingDelegate()
+        set(delegate) = com.adobe.marketing.mobile.MobileCore.setMessagingDelegate(delegate)
+
+
 }
 
 private const val LOG_TAG = "MobileCoreKT"
@@ -50,12 +62,23 @@ fun MobileCore.start(application: Application, init: InitOptions.() -> Unit) {
 
 class InitOptions {
     fun appId(appId: String) = com.adobe.marketing.mobile.MobileCore.configureWithAppID(appId)
-    fun logLevel(level: LoggingMode) = com.adobe.marketing.mobile.MobileCore.setLogLevel(level)
+    fun logLevel(level: LoggingMode) {
+        MobileCore.logLevel = level
+    }
+
     fun configureFileInAssets(fileName: String) =
         com.adobe.marketing.mobile.MobileCore.configureWithFileInAssets(fileName)
 
+    fun configureWithFileInPath(filePath: String) =
+        com.adobe.marketing.mobile.MobileCore.configureWithFileInPath(filePath)
+
     fun updateConfiguration(configMap: Map<String, Any>) =
         com.adobe.marketing.mobile.MobileCore.updateConfiguration(configMap)
+
+    fun clearUpdatedConfiguration() =
+        com.adobe.marketing.mobile.MobileCore.clearUpdatedConfiguration()
+
+    fun resetIdentities() = MobileCore.resetIdentities()
 
     fun registerExtensions(
         extensions: List<Class<out Extension?>> = emptyList(),
@@ -63,6 +86,11 @@ class InitOptions {
     ) {
         registerExtensionsInternal(extensions, completionHandler)
     }
+
+    fun setLargeIconResourceID(resourceID: Int) = MobileCore.setLargeIconResourceID(resourceID)
+
+    fun setSmallIconResourceID(resourceID: Int) = MobileCore.setSmallIconResourceID(resourceID)
+
 }
 
 fun MobileCore.lifecycleStart(additionalContextData: Map<String, String>?) =
@@ -80,6 +108,38 @@ fun MobileCore.trackAction(
 fun MobileCore.trackState(
     state: String, contextData: Map<String, String?> = emptyMap()
 ) = com.adobe.marketing.mobile.MobileCore.trackState(state, contextData)
+
+fun MobileCore.collectMessageInfo(messageInfo: Map<String, Any?>) =
+    com.adobe.marketing.mobile.MobileCore.collectMessageInfo(messageInfo)
+
+fun MobileCore.collectPii(data: Map<String, String?>) =
+    com.adobe.marketing.mobile.MobileCore.collectPii(data)
+
+fun MobileCore.getPrivacyStatus(callback: AdobeCallback<MobilePrivacyStatus?>?) =
+    com.adobe.marketing.mobile.MobileCore.getPrivacyStatus(callback)
+
+fun MobileCore.setPrivacyStatus(privacyStatus: MobilePrivacyStatus) =
+    com.adobe.marketing.mobile.MobileCore.setPrivacyStatus(privacyStatus)
+
+fun MobileCore.getSdkIdentities(callback: AdobeCallback<String?>) =
+    com.adobe.marketing.mobile.MobileCore.getSdkIdentities(callback)
+
+fun MobileCore.resetIdentities() = com.adobe.marketing.mobile.MobileCore.resetIdentities()
+
+fun MobileCore.setAdvertisingIdentifier(advertisingIdentifier: String) =
+    com.adobe.marketing.mobile.MobileCore.setAdvertisingIdentifier(advertisingIdentifier)
+
+fun MobileCore.setLargeIconResourceID(resourceID: Int) =
+    com.adobe.marketing.mobile.MobileCore.setLargeIconResourceID(resourceID)
+
+fun MobileCore.setSmallIconResourceID(resourceID: Int) =
+    com.adobe.marketing.mobile.MobileCore.setSmallIconResourceID(resourceID)
+//
+//fun MobileCore.setWrapperType(wrapperType: WrapperType) =
+//    com.adobe.marketing.mobile.MobileCore.setWrapperType(wrapperType)
+
+fun MobileCore.setPushIdentifier(pushIdentifier: String) =
+    com.adobe.marketing.mobile.MobileCore.setPushIdentifier(pushIdentifier)
 
 private fun registerExtensionsInternal(
     extensions: List<Class<out Extension?>>,
