@@ -12,6 +12,7 @@ package com.adobe.marketing.mobile.app.kotlin
 
 import android.app.Application
 import com.adobe.marketing.mobile.LoggingMode
+import com.adobe.marketing.mobile.MobilePrivacyStatus
 import com.adobe.marketing.mobile.core.ktx.MobileCore
 import com.adobe.marketing.mobile.core.ktx.start
 import com.adobe.marketing.mobile.core.ktx.trackState
@@ -24,7 +25,15 @@ class MyApp : Application() {
 
         MobileCore.start(this) {
             logLevel(LoggingMode.VERBOSE)
+            privacyStatus(MobilePrivacyStatus.OPT_IN)
             appId("App_ID")
+//            resetIdentities()
+//            clearUpdatedConfiguration()
+//            resetIdentities()
+//            configureFileInAssets("abc.json")
+//            configureWithFileInPath("path_to_file")
+//            largeIconResourceID(1)
+//            smallIconResourceID(2)
             updateConfiguration(mapOf("global.privacy" to "optedout"))
 //            registerExtensions(listOf(PerfExtension::class.java)) {}
             registerExtensions {

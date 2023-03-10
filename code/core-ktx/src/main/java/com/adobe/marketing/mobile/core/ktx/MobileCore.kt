@@ -66,6 +66,9 @@ class InitOptions {
         MobileCore.logLevel = level
     }
 
+    fun privacyStatus(privacyStatus: MobilePrivacyStatus) =
+        MobileCore.setPrivacyStatus(privacyStatus)
+
     fun configureFileInAssets(fileName: String) =
         com.adobe.marketing.mobile.MobileCore.configureWithFileInAssets(fileName)
 
@@ -87,9 +90,9 @@ class InitOptions {
         registerExtensionsInternal(extensions, completionHandler)
     }
 
-    fun setLargeIconResourceID(resourceID: Int) = MobileCore.setLargeIconResourceID(resourceID)
+    fun largeIconResourceID(resourceID: Int) = MobileCore.setLargeIconResourceID(resourceID)
 
-    fun setSmallIconResourceID(resourceID: Int) = MobileCore.setSmallIconResourceID(resourceID)
+    fun smallIconResourceID(resourceID: Int) = MobileCore.setSmallIconResourceID(resourceID)
 
 }
 
