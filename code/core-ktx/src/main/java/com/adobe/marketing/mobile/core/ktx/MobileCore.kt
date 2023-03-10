@@ -23,7 +23,10 @@ import com.adobe.marketing.mobile.internal.ExtensionRegistrationService
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 
-object MobileCore
+object MobileCore {
+    val EXTENSION_VERSION: String
+        get() = com.adobe.marketing.mobile.MobileCore.extensionVersion()
+}
 
 private const val LOG_TAG = "MobileCoreKT"
 private const val CLASS_NAME = "MobileCoreKT"

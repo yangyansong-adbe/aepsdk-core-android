@@ -34,7 +34,7 @@ class MyApp : Application() {
 
         MobileCore.trackState("state_1")
         MobileCore.trackState("state_1", mapOf("key" to "value"))
-
+        Log.debug("tag", "MyApp", "Core version is : ${MobileCore.EXTENSION_VERSION}.")
     }
 
 }
