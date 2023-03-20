@@ -104,18 +104,18 @@ public final class IdentityExtension extends Extension {
      */
     IdentityExtension(@NonNull final ExtensionApi extensionApi) {
         this(
-                extensionApi,
-                ServiceProvider.getInstance()
-                        .getDataStoreService()
-                        .getNamedCollection(DataStoreKeys.IDENTITY_PROPERTIES_DATA_STORE_NAME),
-                null);
+            extensionApi,
+            ServiceProvider.getInstance()
+                .getDataStoreService()
+                .getNamedCollection(DataStoreKeys.IDENTITY_PROPERTIES_DATA_STORE_NAME),
+            null);
     }
 
     @VisibleForTesting
     IdentityExtension(
-            @NonNull final ExtensionApi extensionApi,
-            @Nullable final NamedCollection namedCollection,
-            @Nullable final HitQueuing hitQueue) {
+        @NonNull final ExtensionApi extensionApi,
+        @Nullable final NamedCollection namedCollection,
+        @Nullable final HitQueuing hitQueue) {
         super(extensionApi);
         this.namedCollection = namedCollection;
         this.hitQueue = hitQueue;
@@ -140,44 +140,44 @@ public final class IdentityExtension extends Extension {
     protected void onRegistered() {
         // listen to Identity requests
         getApi().registerEventListener(
-                        EventType.IDENTITY,
-                        EventSource.REQUEST_IDENTITY,
-                        this::processIdentityRequest);
+            EventType.IDENTITY,
+            EventSource.REQUEST_IDENTITY,
+            this::processIdentityRequest);
         getApi().registerEventListener(
-                        EventType.GENERIC_IDENTITY,
-                        EventSource.REQUEST_CONTENT,
-                        this::processIdentityRequest);
+            EventType.GENERIC_IDENTITY,
+            EventSource.REQUEST_CONTENT,
+            this::processIdentityRequest);
         getApi().registerEventListener(
-                        EventType.GENERIC_IDENTITY,
-                        EventSource.REQUEST_RESET,
-                        this::handleIdentityRequestReset);
+            EventType.GENERIC_IDENTITY,
+            EventSource.REQUEST_RESET,
+            this::handleIdentityRequestReset);
         getApi().registerEventListener(
-                        EventType.IDENTITY,
-                        EventSource.RESPONSE_IDENTITY,
-                        this::handleIdentityResponseIdentityForSharedState);
+            EventType.IDENTITY,
+            EventSource.RESPONSE_IDENTITY,
+            this::handleIdentityResponseIdentityForSharedState);
         // listen to Analytics response
         getApi().registerEventListener(
-                        EventType.ANALYTICS,
-                        EventSource.RESPONSE_IDENTITY,
-                        this::handleAnalyticsResponseIdentity);
+            EventType.ANALYTICS,
+            EventSource.RESPONSE_IDENTITY,
+            this::handleAnalyticsResponseIdentity);
         // listen to AudienceManager response
         getApi().registerEventListener(
-                        EventType.AUDIENCEMANAGER,
-                        EventSource.RESPONSE_CONTENT,
-                        this::processAudienceResponse);
+            EventType.AUDIENCEMANAGER,
+            EventSource.RESPONSE_CONTENT,
+            this::processAudienceResponse);
         // listen to Configuration response
         getApi().registerEventListener(
-                        EventType.CONFIGURATION,
-                        EventSource.RESPONSE_CONTENT,
-                        this::handleConfiguration);
+            EventType.CONFIGURATION,
+            EventSource.RESPONSE_CONTENT,
+            this::handleConfiguration);
         boot();
         Log.trace(
-                IdentityConstants.LOG_TAG, LOG_SOURCE, new HashMap<String, Object>() {
-                    {
-                        put("operation", "onRegistered");
-                    }
-                },
-                "");
+            IdentityConstants.LOG_TAG, LOG_SOURCE, new HashMap<String, Object>() {
+                {
+                    put("operation", "onRegistered");
+                }
+            },
+            "");
     }
 
     @Override
@@ -188,26 +188,14 @@ public final class IdentityExtension extends Extension {
     @Override
     public boolean readyForEvent(@NonNull final Event event) {
 
-<<<<<<< HEAD:code/android-identity-library/src/main/java/com/adobe/marketing/mobile/identity/IdentityExtension.java
-        if (!hasValidSharedState(IdentityConstants.EventDataKeys.Configuration.MODULE_NAME, event)) {
-            Log.trace(
-                    IdentityConstants.LOG_TAG, LOG_SOURCE,
-                    new HashMap<String, Object>() {{
-                        put("operation", "not readyForEvent");
-                        put("event", event.toString());
-                    }},
-                    "Waiting for the Configuration shared state to get required configuration fields before processing [event: %s].",
-                    event.getName());
-=======
         if (!forceSyncIdentifiers(event)) {
->>>>>>> acf498063ec181141a98ce8f9e2d1f5e22db4336:code/identity/src/main/java/com/adobe/marketing/mobile/identity/IdentityExtension.java
             return false;
         }
 
         // Returns true if the event is either getExperienceCloudId event or getIdentifiers event
         if (event.getType().equals(EventType.IDENTITY)
-                && event.getSource().equals(EventSource.REQUEST_IDENTITY)
-                && (event.getEventData() == null || event.getEventData().isEmpty())) {
+            && event.getSource().equals(EventSource.REQUEST_IDENTITY)
+            && (event.getEventData() == null || event.getEventData().isEmpty())) {
             return true;
         }
 
@@ -219,31 +207,35 @@ public final class IdentityExtension extends Extension {
             // analytics shared state will be null if analytics extension is not registered. Wait
             // for analytics shared only if the status is pending or none
             SharedStateResult sharedStateResult =
-                    getApi().getSharedState(
-                                    IdentityConstants.EventDataKeys.Analytics.MODULE_NAME,
-                                    event,
-                                    false,
-                                    SharedStateResolution.LAST_SET);
+                getApi().getSharedState(
+                    IdentityConstants.EventDataKeys.Analytics.MODULE_NAME,
+                    event,
+                    false,
+                    SharedStateResolution.LAST_SET);
             if (sharedStateResult != null
-                    && sharedStateResult.getStatus() != SharedStateStatus.SET) {
+                && sharedStateResult.getStatus() != SharedStateStatus.SET) {
                 Log.trace(
-                        IdentityConstants.LOG_TAG,
-                        LOG_SOURCE,
-                        "Waiting for the Analytics shared state to be set before processing"
-                                + " [event: %s].",
-                        event.getName());
+                    IdentityConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "Waiting for the Analytics shared state to be set before processing"
+                        + " [event: %s].",
+                    event.getName());
                 return false;
             }
         }
 
         if (!hasValidSharedState(
-                IdentityConstants.EventDataKeys.Configuration.MODULE_NAME, event)) {
+            IdentityConstants.EventDataKeys.Configuration.MODULE_NAME, event)) {
             Log.trace(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "Waiting for the Configuration shared state to get required configuration"
-                            + " fields before processing [event: %s].",
-                    event.getName());
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                new HashMap<String, Object>() {{
+                  put("operation", "not readyForEvent");
+                  put("event", event.toString());
+                }},
+                "Waiting for the Configuration shared state to get required configuration"
+                    + " fields before processing [event: %s].",
+                event.getName());
             return false;
         } else {
             return true;
@@ -253,18 +245,18 @@ public final class IdentityExtension extends Extension {
     @VisibleForTesting
     boolean readyForSyncIdentifiers(final Event event) {
         Map<String, Object> configuration =
-                getApi().getSharedState(
-                                IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
-                                event,
-                                false,
-                                SharedStateResolution.LAST_SET)
-                        .getValue();
+            getApi().getSharedState(
+                    IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
+                    event,
+                    false,
+                    SharedStateResolution.LAST_SET)
+                .getValue();
         String orgId =
-                DataReader.optString(
-                        configuration,
-                        IdentityConstants.EventDataKeys.Configuration
-                                .CONFIG_EXPERIENCE_CLOUD_ORGID_KEY,
-                        "");
+            DataReader.optString(
+                configuration,
+                IdentityConstants.EventDataKeys.Configuration
+                    .CONFIG_EXPERIENCE_CLOUD_ORGID_KEY,
+                "");
         return !orgId.isEmpty();
     }
 
@@ -275,11 +267,11 @@ public final class IdentityExtension extends Extension {
         }
 
         SharedStateResult configState =
-                getApi().getSharedState(
-                                IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
-                                null,
-                                false,
-                                SharedStateResolution.LAST_SET);
+            getApi().getSharedState(
+                IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
+                null,
+                false,
+                SharedStateResolution.LAST_SET);
         if (configState == null || configState.getStatus() != SharedStateStatus.SET) {
             return false;
         }
@@ -298,19 +290,9 @@ public final class IdentityExtension extends Extension {
         ConfigurationSharedStateIdentity configSharedState = new ConfigurationSharedStateIdentity();
         configSharedState.getConfigurationProperties(configuration);
 
-<<<<<<< HEAD:code/android-identity-library/src/main/java/com/adobe/marketing/mobile/identity/IdentityExtension.java
-        final Event forcedSyncEvent = createForcedSyncEvent();
-        processIdentityRequest(forcedSyncEvent);
-        Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
-                new HashMap<String, Object>() {{
-                    put("operation", "force sync");
-                }},
-                "bootup : Added an Identity force sync event on boot.");
-=======
         hasSynced =
-                handleSyncIdentifiers(event, configSharedState, true)
-                        || MobilePrivacyStatus.OPT_OUT.equals(privacyStatus);
->>>>>>> acf498063ec181141a98ce8f9e2d1f5e22db4336:code/identity/src/main/java/com/adobe/marketing/mobile/identity/IdentityExtension.java
+            handleSyncIdentifiers(event, configSharedState, true)
+                || MobilePrivacyStatus.OPT_OUT.equals(privacyStatus);
 
         // Identity should always share its state
         // However, don't create a shared state twice, which will log an error
@@ -326,8 +308,8 @@ public final class IdentityExtension extends Extension {
 
     private boolean hasValidSharedState(final String extensionName, final Event event) {
         SharedStateResult sharedStateResult =
-                getApi().getSharedState(
-                                extensionName, event, false, SharedStateResolution.LAST_SET);
+            getApi().getSharedState(
+                extensionName, event, false, SharedStateResolution.LAST_SET);
         if (sharedStateResult == null || sharedStateResult.getStatus() != SharedStateStatus.SET) {
             return false;
         }
@@ -357,9 +339,9 @@ public final class IdentityExtension extends Extension {
     private void initializeHitQueueDatabase() {
         if (hitQueue == null) {
             DataQueue dataQueue =
-                    ServiceProvider.getInstance()
-                            .getDataQueueService()
-                            .getDataQueue(IdentityConstants.EXTENSION_NAME);
+                ServiceProvider.getInstance()
+                    .getDataQueueService()
+                    .getDataQueue(IdentityConstants.EXTENSION_NAME);
             hitQueue = new PersistentHitQueue(dataQueue, new IdentityHitsProcessing(this));
         }
     }
@@ -386,11 +368,11 @@ public final class IdentityExtension extends Extension {
         }
 
         MobilePrivacyStatus mobilePrivacyStatus =
-                MobilePrivacyStatus.fromString(
-                        DataReader.optString(
-                                configuration,
-                                IdentityConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY,
-                                Defaults.DEFAULT_MOBILE_PRIVACY.getValue()));
+            MobilePrivacyStatus.fromString(
+                DataReader.optString(
+                    configuration,
+                    IdentityConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY,
+                    Defaults.DEFAULT_MOBILE_PRIVACY.getValue()));
         hitQueue.handlePrivacyChange(mobilePrivacyStatus);
         if (mobilePrivacyStatus.equals(MobilePrivacyStatus.OPT_OUT)) {
             handleOptOut(configuration);
@@ -423,8 +405,8 @@ public final class IdentityExtension extends Extension {
         }
 
         String aid =
-                DataReader.optString(
-                        data, IdentityConstants.EventDataKeys.Analytics.ANALYTICS_ID, null);
+            DataReader.optString(
+                data, IdentityConstants.EventDataKeys.Analytics.ANALYTICS_ID, null);
 
         if (StringUtils.isNullOrEmpty(aid)) {
             return;
@@ -446,15 +428,15 @@ public final class IdentityExtension extends Extension {
         final Map<String, Object> syncData = new HashMap<>();
         syncData.put(IdentityConstants.EventDataKeys.Identity.IDENTIFIERS, identifiers);
         syncData.put(
-                IdentityConstants.EventDataKeys.Identity.AUTHENTICATION_STATE,
-                VisitorID.AuthenticationState.UNKNOWN.getValue());
+            IdentityConstants.EventDataKeys.Identity.AUTHENTICATION_STATE,
+            VisitorID.AuthenticationState.UNKNOWN.getValue());
         syncData.put(IdentityConstants.EventDataKeys.Identity.FORCE_SYNC, false);
         syncData.put(IdentityConstants.EventDataKeys.Identity.IS_SYNC_EVENT, true);
 
         Event avidEvent =
-                new Event.Builder("AVID Sync", EventType.IDENTITY, EventSource.REQUEST_IDENTITY)
-                        .setEventData(syncData)
-                        .build();
+            new Event.Builder("AVID Sync", EventType.IDENTITY, EventSource.REQUEST_IDENTITY)
+                .setEventData(syncData)
+                .build();
         getApi().dispatch(avidEvent);
     }
 
@@ -472,10 +454,10 @@ public final class IdentityExtension extends Extension {
         Map<String, Object> data = event.getEventData();
 
         if (data == null
-                || !DataReader.optBoolean(
-                        data,
-                        IdentityConstants.EventDataKeys.Identity.UPDATE_SHARED_STATE,
-                        false)) {
+            || !DataReader.optBoolean(
+            data,
+            IdentityConstants.EventDataKeys.Identity.UPDATE_SHARED_STATE,
+            false)) {
             return;
         }
         getApi().createSharedState(packageEventData(), event);
@@ -490,11 +472,11 @@ public final class IdentityExtension extends Extension {
      */
     void updateLatestValidConfiguration(final Map<String, Object> data) {
         String orgId =
-                DataReader.optString(
-                        data,
-                        IdentityConstants.EventDataKeys.Configuration
-                                .CONFIG_EXPERIENCE_CLOUD_ORGID_KEY,
-                        null);
+            DataReader.optString(
+                data,
+                IdentityConstants.EventDataKeys.Configuration
+                    .CONFIG_EXPERIENCE_CLOUD_ORGID_KEY,
+                null);
 
         if (!StringUtils.isNullOrEmpty(orgId)) {
             latestValidConfig = new ConfigurationSharedStateIdentity();
@@ -511,9 +493,9 @@ public final class IdentityExtension extends Extension {
     void handleIdentityRequestReset(@NonNull final Event event) {
         if (privacyStatus == MobilePrivacyStatus.OPT_OUT) {
             Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "handleIdentityRequestReset: Privacy is opt-out, ignoring event.");
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "handleIdentityRequestReset: Privacy is opt-out, ignoring event.");
             return;
         }
         mid = null;
@@ -534,11 +516,11 @@ public final class IdentityExtension extends Extension {
         ConfigurationSharedStateIdentity configSharedState = new ConfigurationSharedStateIdentity();
 
         SharedStateResult configState =
-                getApi().getSharedState(
-                                IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
-                                event,
-                                false,
-                                SharedStateResolution.LAST_SET);
+            getApi().getSharedState(
+                IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
+                event,
+                false,
+                SharedStateResolution.LAST_SET);
         if (configState != null) {
             configSharedState.getConfigurationProperties(configState.getValue());
         }
@@ -573,10 +555,10 @@ public final class IdentityExtension extends Extension {
 
         if (data.containsKey(IdentityConstants.EventDataKeys.Audience.OPTED_OUT_HIT_SENT)) {
             boolean optOutHitSent =
-                    DataReader.optBoolean(
-                            data,
-                            IdentityConstants.EventDataKeys.Audience.OPTED_OUT_HIT_SENT,
-                            false);
+                DataReader.optBoolean(
+                    data,
+                    IdentityConstants.EventDataKeys.Audience.OPTED_OUT_HIT_SENT,
+                    false);
 
             if (optOutHitSent) {
                 return;
@@ -584,26 +566,26 @@ public final class IdentityExtension extends Extension {
 
             // IdentityExtension needs to send the hit since AAM did not
             SharedStateResult identitySharedState =
-                    getApi().getSharedState(
-                                    IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
-                                    audienceEvent,
-                                    false,
-                                    SharedStateResolution.ANY);
+                getApi().getSharedState(
+                    IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
+                    audienceEvent,
+                    false,
+                    SharedStateResolution.ANY);
 
             if (identitySharedState == null
-                    || identitySharedState.getStatus() != SharedStateStatus.SET) {
+                || identitySharedState.getStatus() != SharedStateStatus.SET) {
                 Log.trace(
-                        IdentityConstants.LOG_TAG,
-                        LOG_SOURCE,
-                        "processAudienceResponse : Unable to process the Identity events in the"
-                            + " event queue because the configuration shared state is pending.");
+                    IdentityConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "processAudienceResponse : Unable to process the Identity events in the"
+                        + " event queue because the configuration shared state is pending.");
                 return;
             }
 
             // Make sure that the configuration shared state at this point has not changed the
             // privacy status
             ConfigurationSharedStateIdentity configSharedState =
-                    new ConfigurationSharedStateIdentity();
+                new ConfigurationSharedStateIdentity();
             configSharedState.getConfigurationProperties(identitySharedState.getValue());
 
             if (configSharedState.privacyStatus.equals(MobilePrivacyStatus.OPT_OUT)) {
@@ -624,59 +606,59 @@ public final class IdentityExtension extends Extension {
 
         if (StringUtils.isNullOrEmpty(optOutUrl)) {
             Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "sendOptOutHit : Unable to send network hit because the opt-out URL was null.");
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "sendOptOutHit : Unable to send network hit because the opt-out URL was null.");
             return;
         }
         Networking networkService = ServiceProvider.getInstance().getNetworkService();
         if (networkService == null) {
             Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "sendOptOutHit : Unable to send network request to the opt-out URL (%s)"
-                            + " because NetworkService is unavailable.",
-                    optOutUrl);
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "sendOptOutHit : Unable to send network request to the opt-out URL (%s)"
+                    + " because NetworkService is unavailable.",
+                optOutUrl);
             return;
         }
 
         Log.debug(
-                IdentityConstants.LOG_TAG,
-                LOG_SOURCE,
-                "sendOptOutHit : Sending network request to the opt-out URL: (%s).",
-                optOutUrl);
+            IdentityConstants.LOG_TAG,
+            LOG_SOURCE,
+            "sendOptOutHit : Sending network request to the opt-out URL: (%s).",
+            optOutUrl);
 
         NetworkRequest networkRequest =
-                new NetworkRequest(
-                        optOutUrl,
-                        HttpMethod.GET,
-                        null,
-                        null,
-                        IdentityConstants.Defaults.TIMEOUT,
-                        IdentityConstants.Defaults.TIMEOUT);
+            new NetworkRequest(
+                optOutUrl,
+                HttpMethod.GET,
+                null,
+                null,
+                IdentityConstants.Defaults.TIMEOUT,
+                IdentityConstants.Defaults.TIMEOUT);
         networkService.connectAsync(
-                networkRequest,
-                connection -> {
-                    if (connection == null) {
-                        return;
-                    }
+            networkRequest,
+            connection -> {
+                if (connection == null) {
+                    return;
+                }
 
-                    if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                        Log.trace(
-                                IdentityConstants.LOG_TAG,
-                                LOG_SOURCE,
-                                "sendOptOutHit - Successfully sent the opt-out hit.");
-                    } else {
-                        Log.trace(
-                                IdentityConstants.LOG_TAG,
-                                LOG_SOURCE,
-                                "sendOptOutHit - Failed to send the opt-out hit with connection"
-                                        + " status (%s).",
-                                connection.getResponseCode());
-                    }
+                if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    Log.trace(
+                        IdentityConstants.LOG_TAG,
+                        LOG_SOURCE,
+                        "sendOptOutHit - Successfully sent the opt-out hit.");
+                } else {
+                    Log.trace(
+                        IdentityConstants.LOG_TAG,
+                        LOG_SOURCE,
+                        "sendOptOutHit - Failed to send the opt-out hit with connection"
+                            + " status (%s).",
+                        connection.getResponseCode());
+                }
 
-                    connection.close();
-                });
+                connection.close();
+            });
     }
 
     /**
@@ -688,85 +670,78 @@ public final class IdentityExtension extends Extension {
     void loadVariablesFromPersistentData() {
         if (namedCollection == null) {
             Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "loadVariablesFromPersistentData : Unable to load the Identity data from"
-                            + " persistence because the LocalStorageService was null.");
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "loadVariablesFromPersistentData : Unable to load the Identity data from"
+                    + " persistence because the LocalStorageService was null.");
             return;
         }
         mid = namedCollection.getString(IdentityConstants.DataStoreKeys.MARKETING_CLOUD_ID, null);
 
         // reload the customer ids.
         final List<VisitorID> newCustomerIDs =
-                convertVisitorIdsStringToVisitorIDObjects(
-                        namedCollection.getString(
-                                IdentityConstants.DataStoreKeys.VISITOR_IDS_STRING, null));
+            convertVisitorIdsStringToVisitorIDObjects(
+                namedCollection.getString(
+                    IdentityConstants.DataStoreKeys.VISITOR_IDS_STRING, null));
 
         customerIds = newCustomerIDs == null || newCustomerIDs.isEmpty() ? null : newCustomerIDs;
-<<<<<<< HEAD:code/android-identity-library/src/main/java/com/adobe/marketing/mobile/identity/IdentityExtension.java
-        int customerIdsSize = newCustomerIDs == null || newCustomerIDs.isEmpty() ? 0 : customerIds.size();
-        Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
-                new HashMap<String, Object>() {{
-                    put("operation", customerIdsSize + " cached vids");
-                }},
-                "Load the store VisitorIDs from persistence: size = %s", customerIdsSize);
-        locationHint = namedCollection.getString(IdentityConstants.DataStoreKeys.LOCATION_HINT, null);
-=======
         int customerIdsSize =
-                newCustomerIDs == null || newCustomerIDs.isEmpty() ? 0 : customerIds.size();
+            newCustomerIDs == null || newCustomerIDs.isEmpty() ? 0 : customerIds.size();
         Log.trace(
-                IdentityConstants.LOG_TAG,
-                LOG_SOURCE,
-                "Load the store VisitorIDs from persistence: size = %s",
-                customerIdsSize);
+            IdentityConstants.LOG_TAG,
+            LOG_SOURCE,
+            new HashMap<String, Object>() {{
+              put("operation", customerIdsSize + " cached vids");
+            }},
+            "Load the store VisitorIDs from persistence: size = %s",
+            customerIdsSize);
         locationHint =
-                namedCollection.getString(IdentityConstants.DataStoreKeys.LOCATION_HINT, null);
->>>>>>> acf498063ec181141a98ce8f9e2d1f5e22db4336:code/identity/src/main/java/com/adobe/marketing/mobile/identity/IdentityExtension.java
+            namedCollection.getString(IdentityConstants.DataStoreKeys.LOCATION_HINT, null);
         blob = namedCollection.getString(IdentityConstants.DataStoreKeys.BLOB, null);
         ttl =
-                namedCollection.getLong(
-                        IdentityConstants.DataStoreKeys.TTL,
-                        IdentityConstants.Defaults.DEFAULT_TTL_VALUE);
+            namedCollection.getLong(
+                IdentityConstants.DataStoreKeys.TTL,
+                IdentityConstants.Defaults.DEFAULT_TTL_VALUE);
         lastSync = namedCollection.getLong(IdentityConstants.DataStoreKeys.LAST_SYNC, 0);
         advertisingIdentifier =
-                namedCollection.getString(
-                        IdentityConstants.DataStoreKeys.ADVERTISING_IDENTIFIER, null);
+            namedCollection.getString(
+                IdentityConstants.DataStoreKeys.ADVERTISING_IDENTIFIER, null);
         pushIdentifier =
-                namedCollection.getString(IdentityConstants.DataStoreKeys.PUSH_IDENTIFIER, null);
+            namedCollection.getString(IdentityConstants.DataStoreKeys.PUSH_IDENTIFIER, null);
         Log.trace(
-                IdentityConstants.LOG_TAG,
-                LOG_SOURCE,
-                "loadVariablesFromPersistentData : Successfully loaded the Identity data from"
-                        + " persistence.");
+            IdentityConstants.LOG_TAG,
+            LOG_SOURCE,
+            "loadVariablesFromPersistentData : Successfully loaded the Identity data from"
+                + " persistence.");
     }
 
     @VisibleForTesting
     boolean isSyncEvent(@NonNull final Event event) {
         return (DataReader.optBoolean(
-                        event.getEventData(),
-                        IdentityConstants.EventDataKeys.Identity.IS_SYNC_EVENT,
-                        false)
-                || event.getType().equals(EventType.GENERIC_IDENTITY));
+            event.getEventData(),
+            IdentityConstants.EventDataKeys.Identity.IS_SYNC_EVENT,
+            false)
+            || event.getType().equals(EventType.GENERIC_IDENTITY));
     }
 
     private boolean isResetIdentityEvent(@NonNull final Event event) {
         return (event.getType().equals(EventType.GENERIC_IDENTITY)
-                && event.getSource().equals(EventSource.REQUEST_RESET));
+            && event.getSource().equals(EventSource.REQUEST_RESET));
     }
 
     @VisibleForTesting
     boolean isAppendUrlEvent(@NonNull final Event event) {
         return (event.getEventData() != null
-                && event.getEventData()
-                        .containsKey(IdentityConstants.EventDataKeys.Identity.BASE_URL));
+            && event.getEventData()
+            .containsKey(IdentityConstants.EventDataKeys.Identity.BASE_URL));
     }
 
     @VisibleForTesting
     boolean isGetUrlVarsEvent(@NonNull final Event event) {
         return DataReader.optBoolean(
-                event.getEventData(),
-                IdentityConstants.EventDataKeys.Identity.URL_VARIABLES,
-                false);
+            event.getEventData(),
+            IdentityConstants.EventDataKeys.Identity.URL_VARIABLES,
+            false);
     }
 
     /**
@@ -777,19 +752,19 @@ public final class IdentityExtension extends Extension {
     void processIdentityRequest(@NonNull final Event event) {
 
         if (event.getType().equals(EventType.IDENTITY)
-                && event.getSource().equals(EventSource.REQUEST_IDENTITY)
-                && (event.getEventData() == null || event.getEventData().isEmpty())) {
+            && event.getSource().equals(EventSource.REQUEST_IDENTITY)
+            && (event.getEventData() == null || event.getEventData().isEmpty())) {
             handleIdentityResponseEvent(
-                    "IDENTITY_RESPONSE_CONTENT_ONE_TIME", packageEventData(), event);
+                "IDENTITY_RESPONSE_CONTENT_ONE_TIME", packageEventData(), event);
             return;
         }
 
         SharedStateResult result =
-                getApi().getSharedState(
-                                IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
-                                event,
-                                false,
-                                SharedStateResolution.LAST_SET);
+            getApi().getSharedState(
+                IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
+                event,
+                false,
+                SharedStateResolution.LAST_SET);
         if (result == null) {
             return;
         }
@@ -800,10 +775,10 @@ public final class IdentityExtension extends Extension {
         configSharedState.getConfigurationProperties(configuration);
 
         Log.trace(
-                IdentityConstants.LOG_TAG,
-                LOG_SOURCE,
-                "processEvent : Processing the Identity event: %s",
-                event);
+            IdentityConstants.LOG_TAG,
+            LOG_SOURCE,
+            "processEvent : Processing the Identity event: %s",
+            event);
 
         if (isSyncEvent(event) || EventType.GENERIC_IDENTITY.equals(event.getType())) {
             if (handleSyncIdentifiers(event, configSharedState, false)) {
@@ -811,11 +786,11 @@ public final class IdentityExtension extends Extension {
             }
         } else if (isAppendUrlEvent(event)) {
             SharedStateResult sharedStateResult =
-                    getApi().getSharedState(
-                                    IdentityConstants.EventDataKeys.Analytics.MODULE_NAME,
-                                    event,
-                                    false,
-                                    SharedStateResolution.LAST_SET);
+                getApi().getSharedState(
+                    IdentityConstants.EventDataKeys.Analytics.MODULE_NAME,
+                    event,
+                    false,
+                    SharedStateResolution.LAST_SET);
             Map<String, Object> analyticsSharedState = null;
             if (sharedStateResult != null) {
                 analyticsSharedState = sharedStateResult.getValue();
@@ -823,11 +798,11 @@ public final class IdentityExtension extends Extension {
             handleAppendURL(event, configSharedState, analyticsSharedState);
         } else if (isGetUrlVarsEvent(event)) {
             SharedStateResult sharedStateResult =
-                    getApi().getSharedState(
-                                    IdentityConstants.EventDataKeys.Analytics.MODULE_NAME,
-                                    event,
-                                    false,
-                                    SharedStateResolution.LAST_SET);
+                getApi().getSharedState(
+                    IdentityConstants.EventDataKeys.Analytics.MODULE_NAME,
+                    event,
+                    false,
+                    SharedStateResolution.LAST_SET);
             Map<String, Object> analyticsSharedState = null;
             if (sharedStateResult != null) {
                 analyticsSharedState = sharedStateResult.getValue();
@@ -840,11 +815,11 @@ public final class IdentityExtension extends Extension {
     void handleOptOut(final Map<String, Object> configuration) {
         // If the AAM server is configured let AAM handle opt out, else we send the opt out hit
         if (!configuration.containsKey(
-                IdentityConstants.EventDataKeys.Configuration.AAM_CONFIG_SERVER)) {
+            IdentityConstants.EventDataKeys.Configuration.AAM_CONFIG_SERVER)) {
             // Otherwise, check to see if currently we are still opt_out, and if so, send the OPT
             // OUT hit
             ConfigurationSharedStateIdentity configSharedState =
-                    new ConfigurationSharedStateIdentity();
+                new ConfigurationSharedStateIdentity();
             configSharedState.getConfigurationProperties(configuration);
 
             if (configSharedState.privacyStatus.equals(MobilePrivacyStatus.OPT_OUT)) {
@@ -867,35 +842,35 @@ public final class IdentityExtension extends Extension {
      */
     @VisibleForTesting
     boolean handleSyncIdentifiers(
-            final Event event,
-            final ConfigurationSharedStateIdentity configSharedState,
-            final boolean forceSync) {
+        final Event event,
+        final ConfigurationSharedStateIdentity configSharedState,
+        final boolean forceSync) {
         if (configSharedState == null) {
             // sanity check, should never get here
             Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "handleSyncIdentifiers : Ignoring the Sync Identifiers call because the"
-                            + " configuration was null.");
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "handleSyncIdentifiers : Ignoring the Sync Identifiers call because the"
+                    + " configuration was null.");
             return false;
         }
 
         // do not even extract any data if the config is opt_out.
         if (privacyStatus == MobilePrivacyStatus.OPT_OUT) {
             Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "handleSyncIdentifiers : Ignoring the Sync Identifiers call because the"
-                            + " privacy status was opt-out.");
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "handleSyncIdentifiers : Ignoring the Sync Identifiers call because the"
+                    + " privacy status was opt-out.");
             return false;
         }
 
         if (event == null) {
             Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "handleSyncIdentifiers : Ignoring the Sync Identifiers call because the event"
-                            + " sent was null.");
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "handleSyncIdentifiers : Ignoring the Sync Identifiers call because the event"
+                    + " sent was null.");
             return false;
         }
 
@@ -912,12 +887,12 @@ public final class IdentityExtension extends Extension {
             } else {
                 // can't process this event. return false to break execution loop
                 Log.debug(
-                        IdentityConstants.LOG_TAG,
-                        LOG_SOURCE,
-                        "handleSyncIdentifiers : Unable to process sync identifiers request as the"
-                                + " configuration did not contain a valid Experience Cloud"
-                                + " organization ID. Will attempt to process event when a valid"
-                                + " configuration is received.");
+                    IdentityConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "handleSyncIdentifiers : Unable to process sync identifiers request as the"
+                        + " configuration did not contain a valid Experience Cloud"
+                        + " organization ID. Will attempt to process event when a valid"
+                        + " configuration is received.");
                 return false;
             }
         }
@@ -925,10 +900,10 @@ public final class IdentityExtension extends Extension {
         // check privacy again from the configuration object
         if (currentEventValidConfig.privacyStatus == MobilePrivacyStatus.OPT_OUT) {
             Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "handleSyncIdentifiers : Ignored the Sync Identifiers call because the privacy"
-                            + " status was opt-out.");
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "handleSyncIdentifiers : Ignored the Sync Identifiers call because the privacy"
+                    + " status was opt-out.");
             return false;
         }
 
@@ -936,11 +911,11 @@ public final class IdentityExtension extends Extension {
         if (StringUtils.isNullOrEmpty(currentEventValidConfig.marketingCloudServer)) {
             currentEventValidConfig.marketingCloudServer = IdentityConstants.Defaults.SERVER;
             Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "handleSyncIdentifiers : The experienceCloud.server was empty is the"
-                            + " configuration, hence used the default server: (%s).",
-                    currentEventValidConfig.marketingCloudServer);
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "handleSyncIdentifiers : The experienceCloud.server was empty is the"
+                    + " configuration, hence used the default server: (%s).",
+                currentEventValidConfig.marketingCloudServer);
         }
 
         final Map<String, Object> eventData = event.getEventData();
@@ -953,19 +928,19 @@ public final class IdentityExtension extends Extension {
 
         // Extract Authentication state
         final VisitorID.AuthenticationState idState =
-                VisitorID.AuthenticationState.fromInteger(
-                        DataReader.optInt(
-                                eventData,
-                                IdentityConstants.EventDataKeys.Identity.AUTHENTICATION_STATE,
-                                0));
+            VisitorID.AuthenticationState.fromInteger(
+                DataReader.optInt(
+                    eventData,
+                    IdentityConstants.EventDataKeys.Identity.AUTHENTICATION_STATE,
+                    0));
 
         // Extract isForceSync
         final boolean shouldForceSync =
-                forceSync
-                        || DataReader.optBoolean(
-                                eventData,
-                                IdentityConstants.EventDataKeys.Identity.FORCE_SYNC,
-                                false);
+            forceSync
+                || DataReader.optBoolean(
+                eventData,
+                IdentityConstants.EventDataKeys.Identity.FORCE_SYNC,
+                false);
 
         List<VisitorID> currentCustomerIds = generateCustomerIds(identifiers, idState);
 
@@ -989,25 +964,25 @@ public final class IdentityExtension extends Extension {
 
         // valid config: check if there's a need to sync. Don't if we're already up to date.
         if (shouldSync(
-                currentCustomerIds,
-                dpids,
-                shouldForceSync || didAdidConsentChange,
-                currentEventValidConfig)) {
+            currentCustomerIds,
+            dpids,
+            shouldForceSync || didAdidConsentChange,
+            currentEventValidConfig)) {
             final String urlString =
-                    buildURLString(
-                            currentCustomerIds,
-                            dpids,
-                            currentEventValidConfig,
-                            didAdidConsentChange);
+                buildURLString(
+                    currentCustomerIds,
+                    dpids,
+                    currentEventValidConfig,
+                    didAdidConsentChange);
             IdentityHit hit = new IdentityHit(urlString, event);
             hitQueue.queue(hit.toDataEntity());
         } else {
             // nothing to sync
             Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "handleSyncIdentifiers : Ignoring ID sync because nothing new to sync after"
-                            + " the last sync.");
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "handleSyncIdentifiers : Ignoring ID sync because nothing new to sync after"
+                    + " the last sync.");
         }
 
         savePersistently();
@@ -1030,16 +1005,16 @@ public final class IdentityExtension extends Extension {
         Map<String, String> identifiers = new HashMap<>();
 
         if (eventData == null
-                || !eventData.containsKey(IdentityConstants.EventDataKeys.Identity.IDENTIFIERS)) {
+            || !eventData.containsKey(IdentityConstants.EventDataKeys.Identity.IDENTIFIERS)) {
             return identifiers;
         }
 
         final Map<String, String> identifiersMap =
-                DataReader.optTypedMap(
-                        String.class,
-                        eventData,
-                        IdentityConstants.EventDataKeys.Identity.IDENTIFIERS,
-                        null);
+            DataReader.optTypedMap(
+                String.class,
+                eventData,
+                IdentityConstants.EventDataKeys.Identity.IDENTIFIERS,
+                null);
 
         if (identifiersMap != null) {
             return identifiersMap;
@@ -1061,23 +1036,23 @@ public final class IdentityExtension extends Extension {
      *     changed to or from a null/empty value.
      */
     IdentityGenericPair<VisitorID, Boolean> extractAndUpdateAdid(
-            final Map<String, Object> eventData) {
+        final Map<String, Object> eventData) {
         VisitorID adidAsVisitorId = null;
         boolean didConsentChange = false;
 
         if (eventData == null
-                || !eventData.containsKey(
-                        IdentityConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER)) {
+            || !eventData.containsKey(
+            IdentityConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER)) {
             return new IdentityGenericPair<>(adidAsVisitorId, didConsentChange);
         }
 
         // Extract Advertising Identifier
         try {
             String newAdid =
-                    DataReader.optString(
-                            eventData,
-                            IdentityConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER,
-                            "");
+                DataReader.optString(
+                    eventData,
+                    IdentityConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER,
+                    "");
 
             // If ad id is all zeros, treat as if null/empty
             if (Defaults.ZERO_ADVERTISING_ID.equals(newAdid)) {
@@ -1086,37 +1061,37 @@ public final class IdentityExtension extends Extension {
 
             // did the adid value change?
             if ((!newAdid.isEmpty() && !newAdid.equals(advertisingIdentifier))
-                    || (newAdid.isEmpty() && !StringUtils.isNullOrEmpty(advertisingIdentifier))) {
+                || (newAdid.isEmpty() && !StringUtils.isNullOrEmpty(advertisingIdentifier))) {
                 // Now we know the value changed, but did it change to/from null?
                 // Handle case where advertisingIdentifier loaded from persistence with all zeros
                 // and new value is not empty.
                 if (newAdid.isEmpty()
-                        || StringUtils.isNullOrEmpty(advertisingIdentifier)
-                        || Defaults.ZERO_ADVERTISING_ID.equals(advertisingIdentifier)) {
+                    || StringUtils.isNullOrEmpty(advertisingIdentifier)
+                    || Defaults.ZERO_ADVERTISING_ID.equals(advertisingIdentifier)) {
                     didConsentChange = true;
                 }
 
                 adidAsVisitorId =
-                        new VisitorID(
-                                IdentityConstants.UrlKeys.VISITOR_ID,
-                                IdentityConstants.EventDataKeys.Identity.ADID_DSID,
-                                newAdid,
-                                VisitorID.AuthenticationState.AUTHENTICATED);
+                    new VisitorID(
+                        IdentityConstants.UrlKeys.VISITOR_ID,
+                        IdentityConstants.EventDataKeys.Identity.ADID_DSID,
+                        newAdid,
+                        VisitorID.AuthenticationState.AUTHENTICATED);
 
                 updateAdvertisingIdentifier(newAdid);
                 Log.trace(
-                        IdentityConstants.LOG_TAG,
-                        LOG_SOURCE,
-                        "extractAndUpdateAdid : The advertising identifier was set to: (%s).",
-                        newAdid);
+                    IdentityConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "extractAndUpdateAdid : The advertising identifier was set to: (%s).",
+                    newAdid);
             }
         } catch (Exception e) {
             Log.error(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "extractAndUpdateAdid : Unable to update the advertising identifier due to:"
-                            + " (%s)",
-                    e);
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "extractAndUpdateAdid : Unable to update the advertising identifier due to:"
+                    + " (%s)",
+                e);
         }
 
         return new IdentityGenericPair<>(adidAsVisitorId, didConsentChange);
@@ -1130,28 +1105,28 @@ public final class IdentityExtension extends Extension {
      * @param configSharedState the Identity Configuration shared state object
      */
     void handleAppendURL(
-            final Event event,
-            final ConfigurationSharedStateIdentity configSharedState,
-            final Map<String, Object> analyticsSharedState) {
+        final Event event,
+        final ConfigurationSharedStateIdentity configSharedState,
+        final Map<String, Object> analyticsSharedState) {
         final Map<String, Object> eventData = event.getEventData();
 
         final String urlString =
-                DataReader.optString(
-                        eventData, IdentityConstants.EventDataKeys.Identity.BASE_URL, null);
+            DataReader.optString(
+                eventData, IdentityConstants.EventDataKeys.Identity.BASE_URL, null);
 
         appendVisitorInfoForURL(urlString, event, configSharedState, analyticsSharedState, null);
     }
 
     void handleGetUrlVariables(
-            final Event event,
-            final ConfigurationSharedStateIdentity configSharedState,
-            @Nullable final Map<String, Object> analyticsSharedState) {
+        final Event event,
+        final ConfigurationSharedStateIdentity configSharedState,
+        @Nullable final Map<String, Object> analyticsSharedState) {
         final StringBuilder idStringBuilder =
-                generateVisitorIDURLPayload(configSharedState, analyticsSharedState);
+            generateVisitorIDURLPayload(configSharedState, analyticsSharedState);
 
         final Map<String, Object> params = new HashMap<>();
         params.put(
-                IdentityConstants.EventDataKeys.Identity.URL_VARIABLES, idStringBuilder.toString());
+            IdentityConstants.EventDataKeys.Identity.URL_VARIABLES, idStringBuilder.toString());
         handleIdentityResponseEvent("IDENTITY_URL_VARIABLES", params, event);
     }
 
@@ -1166,21 +1141,21 @@ public final class IdentityExtension extends Extension {
 
         if (!processNewPushToken(pushId)) {
             Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "updatePushIdentifier : Ignored a push token (%s) as it matches with an"
-                        + " existing token, and the push notification status will not be re-sent to"
-                        + " Analytics.",
-                    pushId);
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "updatePushIdentifier : Ignored a push token (%s) as it matches with an"
+                    + " existing token, and the push notification status will not be re-sent to"
+                    + " Analytics.",
+                pushId);
             return;
         }
 
         if (pushId == null && !isPushEnabled()) {
             changePushStatusAndHitAnalytics(false);
             Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "updatePushIdentifier : First time sending a.push.optin false");
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "updatePushIdentifier : First time sending a.push.optin false");
         } else if (pushId == null) { // push is enabled
             changePushStatusAndHitAnalytics(false);
         } else if (!isPushEnabled()) { // push ID is not null
@@ -1198,26 +1173,26 @@ public final class IdentityExtension extends Extension {
     boolean processNewPushToken(final String pushToken) {
         if (namedCollection == null) {
             Log.trace(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "processNewPushToken : Unable to update push settings because the"
-                            + " LocalStorageService was not available.");
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "processNewPushToken : Unable to update push settings because the"
+                    + " LocalStorageService was not available.");
             return false;
         }
 
         final String existingPushToken =
-                namedCollection.getString(DataStoreKeys.PUSH_IDENTIFIER, null);
+            namedCollection.getString(DataStoreKeys.PUSH_IDENTIFIER, null);
         final boolean analyticsSynced =
-                namedCollection.getBoolean(
-                        IdentityConstants.DataStoreKeys.ANALYTICS_PUSH_SYNC, false);
+            namedCollection.getBoolean(
+                IdentityConstants.DataStoreKeys.ANALYTICS_PUSH_SYNC, false);
         final boolean areTokensEqual =
-                (StringUtils.isNullOrEmpty(pushToken) && existingPushToken == null)
-                        || (existingPushToken != null && existingPushToken.equals(pushToken));
+            (StringUtils.isNullOrEmpty(pushToken) && existingPushToken == null)
+                || (existingPushToken != null && existingPushToken.equals(pushToken));
 
         // AMSDK-10414 process the update only if the value changed or if this is not the first time
         // setting the push token to null
         if ((areTokensEqual && !StringUtils.isNullOrEmpty(pushToken))
-                || (areTokensEqual && analyticsSynced)) {
+            || (areTokensEqual && analyticsSynced)) {
             return false;
         }
 
@@ -1248,11 +1223,11 @@ public final class IdentityExtension extends Extension {
      * @param analyticsSharedState the Analytics shared state
      */
     void appendVisitorInfoForURL(
-            final String baseURL,
-            final Event event,
-            final ConfigurationSharedStateIdentity configSharedState,
-            final Map<String, Object> analyticsSharedState,
-            final StringBuilder idStringBuilderForTesting) {
+        final String baseURL,
+        final Event event,
+        final ConfigurationSharedStateIdentity configSharedState,
+        final Map<String, Object> analyticsSharedState,
+        final StringBuilder idStringBuilderForTesting) {
         if (StringUtils.isNullOrEmpty(baseURL)) {
             // nothing to update, dispatch provided baseURL
             final Map<String, Object> params = new HashMap<>();
@@ -1263,9 +1238,9 @@ public final class IdentityExtension extends Extension {
 
         final StringBuilder modifiedURL = new StringBuilder(baseURL);
         final StringBuilder idStringBuilder =
-                idStringBuilderForTesting != null
-                        ? idStringBuilderForTesting
-                        : generateVisitorIDURLPayload(configSharedState, analyticsSharedState);
+            idStringBuilderForTesting != null
+                ? idStringBuilderForTesting
+                : generateVisitorIDURLPayload(configSharedState, analyticsSharedState);
 
         if (!StringUtils.isNullOrEmpty(idStringBuilder.toString())) {
             // add separator based on if url contains query parameters
@@ -1307,7 +1282,7 @@ public final class IdentityExtension extends Extension {
         final long least = uuid.getLeastSignificantBits();
         // return formatted string, flip negatives if they're set.
         return String.format(
-                Locale.US, "%019d%019d", most < 0 ? -most : most, least < 0 ? -least : least);
+            Locale.US, "%019d%019d", most < 0 ? -most : most, least < 0 ? -least : least);
     }
 
     /**
@@ -1319,10 +1294,10 @@ public final class IdentityExtension extends Extension {
     String generateURLEncodedValuesCustomerIdString(final List<VisitorID> visitorIDs) {
         if (visitorIDs == null || visitorIDs.isEmpty()) {
             Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "generateURLEncodedValuesCustomerIdString : No Visitor ID exists in the"
-                            + " provided list to generate for URL.");
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "generateURLEncodedValuesCustomerIdString : No Visitor ID exists in the"
+                    + " provided list to generate for URL.");
             return null;
         }
 
@@ -1363,8 +1338,8 @@ public final class IdentityExtension extends Extension {
      * @return {@code List<VisitorID>} list of generated {@code VisitorID}s
      */
     List<VisitorID> generateCustomerIds(
-            final Map<String, String> identifiers,
-            final VisitorID.AuthenticationState authenticationState) {
+        final Map<String, String> identifiers,
+        final VisitorID.AuthenticationState authenticationState) {
         if (identifiers == null) {
             return Collections.emptyList();
         }
@@ -1374,19 +1349,19 @@ public final class IdentityExtension extends Extension {
         for (Map.Entry<String, String> newID : identifiers.entrySet()) {
             try {
                 VisitorID tempId =
-                        new VisitorID(
-                                IdentityConstants.UrlKeys.VISITOR_ID,
-                                newID.getKey(),
-                                newID.getValue(),
-                                authenticationState);
+                    new VisitorID(
+                        IdentityConstants.UrlKeys.VISITOR_ID,
+                        newID.getKey(),
+                        newID.getValue(),
+                        authenticationState);
                 tempIds.add(tempId);
             } catch (final IllegalStateException ex) {
                 Log.debug(
-                        IdentityConstants.LOG_TAG,
-                        LOG_SOURCE,
-                        "generateCustomerIds : Unable to create Visitor IDs after encoding the"
-                                + " provided list due to: (%s).",
-                        ex);
+                    IdentityConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "generateCustomerIds : Unable to create Visitor IDs after encoding the"
+                        + " provided list due to: (%s).",
+                    ex);
             }
         }
 
@@ -1407,8 +1382,8 @@ public final class IdentityExtension extends Extension {
 
         if (!StringUtils.isNullOrEmpty(advertisingIdentifier)) {
             eventData.put(
-                    IdentityConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER,
-                    advertisingIdentifier);
+                IdentityConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER,
+                advertisingIdentifier);
         }
 
         if (!StringUtils.isNullOrEmpty(pushIdentifier)) {
@@ -1421,14 +1396,14 @@ public final class IdentityExtension extends Extension {
 
         if (!StringUtils.isNullOrEmpty(locationHint)) {
             eventData.put(
-                    IdentityConstants.EventDataKeys.Identity.VISITOR_ID_LOCATION_HINT,
-                    locationHint);
+                IdentityConstants.EventDataKeys.Identity.VISITOR_ID_LOCATION_HINT,
+                locationHint);
         }
 
         if (customerIds != null && !customerIds.isEmpty()) {
             eventData.put(
-                    IdentityConstants.EventDataKeys.Identity.VISITOR_IDS_LIST,
-                    convertVisitorIds(customerIds));
+                IdentityConstants.EventDataKeys.Identity.VISITOR_IDS_LIST,
+                convertVisitorIds(customerIds));
         }
 
         eventData.put(IdentityConstants.EventDataKeys.Identity.VISITOR_IDS_LAST_SYNC, lastSync);
@@ -1503,47 +1478,47 @@ public final class IdentityExtension extends Extension {
      * @return {@link StringBuilder} containing the ECID payload for the URL
      */
     StringBuilder generateVisitorIDURLPayload(
-            final ConfigurationSharedStateIdentity configSharedState,
-            @Nullable final Map<String, Object> analyticsSharedState) {
+        final ConfigurationSharedStateIdentity configSharedState,
+        @Nullable final Map<String, Object> analyticsSharedState) {
         final StringBuilder urlFragment = new StringBuilder();
 
         // construct the adobe_mc string
         String theIdString =
-                appendKVPToVisitorIdString(
-                        null,
-                        IdentityConstants.UrlKeys.ADB_VISITOR_TIMESTAMP_KEY,
-                        String.valueOf(TimeUtils.getUnixTimeInSeconds()));
+            appendKVPToVisitorIdString(
+                null,
+                IdentityConstants.UrlKeys.ADB_VISITOR_TIMESTAMP_KEY,
+                String.valueOf(TimeUtils.getUnixTimeInSeconds()));
         theIdString =
-                appendKVPToVisitorIdString(
-                        theIdString,
-                        IdentityConstants.UrlKeys.ADB_VISITOR_PAYLOAD_MARKETING_CLOUD_ID_KEY,
-                        mid);
+            appendKVPToVisitorIdString(
+                theIdString,
+                IdentityConstants.UrlKeys.ADB_VISITOR_PAYLOAD_MARKETING_CLOUD_ID_KEY,
+                mid);
 
         String vid = null;
 
         if (analyticsSharedState != null) {
             String aid =
-                    DataReader.optString(
-                            analyticsSharedState,
-                            IdentityConstants.EventDataKeys.Analytics.ANALYTICS_ID,
-                            null);
+                DataReader.optString(
+                    analyticsSharedState,
+                    IdentityConstants.EventDataKeys.Analytics.ANALYTICS_ID,
+                    null);
 
             if (!StringUtils.isNullOrEmpty(aid)) {
                 // add Analytics ID if found
                 theIdString =
-                        appendKVPToVisitorIdString(
-                                theIdString,
-                                IdentityConstants.UrlKeys.ADB_VISITOR_PAYLOAD_ANALYTICS_ID_KEY,
-                                aid);
+                    appendKVPToVisitorIdString(
+                        theIdString,
+                        IdentityConstants.UrlKeys.ADB_VISITOR_PAYLOAD_ANALYTICS_ID_KEY,
+                        aid);
             }
 
             // get Analytics VID for later
 
             vid =
-                    DataReader.optString(
-                            analyticsSharedState,
-                            IdentityConstants.EventDataKeys.Analytics.VISITOR_IDENTIFIER,
-                            null);
+                DataReader.optString(
+                    analyticsSharedState,
+                    IdentityConstants.EventDataKeys.Analytics.VISITOR_IDENTIFIER,
+                    null);
         }
 
         // add Experience Cloud Org ID
@@ -1551,10 +1526,10 @@ public final class IdentityExtension extends Extension {
 
         if (!StringUtils.isNullOrEmpty(orgId)) {
             theIdString =
-                    appendKVPToVisitorIdString(
-                            theIdString,
-                            IdentityConstants.UrlKeys.ADB_VISITOR_PAYLOAD_MARKETING_CLOUD_ORG_ID,
-                            orgId);
+                appendKVPToVisitorIdString(
+                    theIdString,
+                    IdentityConstants.UrlKeys.ADB_VISITOR_PAYLOAD_MARKETING_CLOUD_ORG_ID,
+                    orgId);
         }
 
         // after the adobe_mc string is created, we need to encode it again before adding it to the
@@ -1588,7 +1563,7 @@ public final class IdentityExtension extends Extension {
      *     key} or {@code value} are null or empty
      */
     String appendKVPToVisitorIdString(
-            final String originalString, final String key, final String value) {
+        final String originalString, final String key, final String value) {
         // quickly return original string if key or value are empty
         if (StringUtils.isNullOrEmpty(key) || StringUtils.isNullOrEmpty(value)) {
             return originalString;
@@ -1620,9 +1595,9 @@ public final class IdentityExtension extends Extension {
         }
 
         final List<VisitorID> tempIds =
-                customerIds != null
-                        ? new ArrayList<VisitorID>(customerIds)
-                        : new ArrayList<VisitorID>();
+            customerIds != null
+                ? new ArrayList<VisitorID>(customerIds)
+                : new ArrayList<VisitorID>();
 
         for (final VisitorID newId : newCustomerIds) {
             VisitorID mergedId = null;
@@ -1633,11 +1608,11 @@ public final class IdentityExtension extends Extension {
                 // state and/or id
                 if (sameIdType(visitorID, newId)) {
                     mergedId =
-                            new VisitorID(
-                                    visitorID.getIdOrigin(),
-                                    visitorID.getIdType(),
-                                    newId.getId(),
-                                    newId.getAuthenticationState());
+                        new VisitorID(
+                            visitorID.getIdOrigin(),
+                            visitorID.getIdType(),
+                            newId.getId(),
+                            newId.getAuthenticationState());
                     oldId = visitorID;
                     break;
                 }
@@ -1718,18 +1693,18 @@ public final class IdentityExtension extends Extension {
         if (eventData.containsKey(IdentityConstants.EventDataKeys.Identity.PUSH_IDENTIFIER)) {
             try {
                 String pushId =
-                        DataReader.optString(
-                                eventData,
-                                IdentityConstants.EventDataKeys.Identity.PUSH_IDENTIFIER,
-                                null);
+                    DataReader.optString(
+                        eventData,
+                        IdentityConstants.EventDataKeys.Identity.PUSH_IDENTIFIER,
+                        null);
                 updatePushIdentifier(pushId);
                 dpIDs.put(IdentityConstants.EventDataKeys.Identity.MCPNS_DPID, pushId);
             } catch (Exception e) {
                 Log.error(
-                        IdentityConstants.LOG_TAG,
-                        LOG_SOURCE,
-                        "extractDPID : Unable to update the push identifier due to: (%s).",
-                        e);
+                    IdentityConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "extractDPID : Unable to update the push identifier due to: (%s).",
+                    e);
             }
         }
 
@@ -1761,31 +1736,31 @@ public final class IdentityExtension extends Extension {
 
         final HashMap<String, String> contextData = new HashMap<>();
         contextData.put(
-                IdentityConstants.EventDataKeys.Identity.EVENT_PUSH_STATUS,
-                String.valueOf(isEnabled));
+            IdentityConstants.EventDataKeys.Identity.EVENT_PUSH_STATUS,
+            String.valueOf(isEnabled));
 
         final Map<String, Object> analyticsData = new HashMap<>();
         analyticsData.put(
-                IdentityConstants.EventDataKeys.Analytics.TRACK_ACTION,
-                IdentityConstants.EventDataKeys.Identity.PUSH_ID_ENABLED_ACTION_NAME);
+            IdentityConstants.EventDataKeys.Analytics.TRACK_ACTION,
+            IdentityConstants.EventDataKeys.Identity.PUSH_ID_ENABLED_ACTION_NAME);
         analyticsData.put(IdentityConstants.EventDataKeys.Analytics.CONTEXT_DATA, contextData);
 
         analyticsData.put(IdentityConstants.EventDataKeys.Analytics.TRACK_INTERNAL, true);
 
         final Event analyticsForMessageEvent =
-                new Event.Builder(
-                                IdentityConstants.ANALYTICS_FOR_IDENTITY_REQUEST_EVENT_NAME,
-                                EventType.ANALYTICS,
-                                EventSource.REQUEST_CONTENT)
-                        .setEventData(analyticsData)
-                        .build();
+            new Event.Builder(
+                IdentityConstants.ANALYTICS_FOR_IDENTITY_REQUEST_EVENT_NAME,
+                EventType.ANALYTICS,
+                EventSource.REQUEST_CONTENT)
+                .setEventData(analyticsData)
+                .build();
 
         getApi().dispatch(analyticsForMessageEvent);
         Log.trace(
-                IdentityConstants.LOG_TAG,
-                LOG_SOURCE,
-                "dispatchAnalyticsHit : Analytics event has been added to event hub : (%s)",
-                analyticsForMessageEvent);
+            IdentityConstants.LOG_TAG,
+            LOG_SOURCE,
+            "dispatchAnalyticsHit : Analytics event has been added to event hub : (%s)",
+            analyticsForMessageEvent);
     }
 
     /**
@@ -1797,10 +1772,10 @@ public final class IdentityExtension extends Extension {
         synchronized (pushEnabledMutex) {
             if (namedCollection == null) {
                 Log.trace(
-                        IdentityConstants.LOG_TAG,
-                        LOG_SOURCE,
-                        "isPushEnabled : Unable to update push flag because the"
-                                + " LocalStorageService was not available.");
+                    IdentityConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "isPushEnabled : Unable to update push flag because the"
+                        + " LocalStorageService was not available.");
                 return false;
             }
 
@@ -1821,18 +1796,18 @@ public final class IdentityExtension extends Extension {
                 namedCollection.setBoolean(DataStoreKeys.PUSH_ENABLED, enabled);
             } else {
                 Log.trace(
-                        IdentityConstants.LOG_TAG,
-                        LOG_SOURCE,
-                        "setPushStatus : Unable to update push flag because the"
-                                + " LocalStorageService was not available.");
+                    IdentityConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "setPushStatus : Unable to update push flag because the"
+                        + " LocalStorageService was not available.");
             }
 
             pushEnabled = enabled;
             Log.trace(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "setPushStatus : Push notifications status is now: "
-                            + (pushEnabled ? "Enabled" : "Disabled"));
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "setPushStatus : Push notifications status is now: "
+                    + (pushEnabled ? "Enabled" : "Disabled"));
         }
     }
 
@@ -1842,27 +1817,27 @@ public final class IdentityExtension extends Extension {
      * @param event for one time callback listener
      */
     private void handleIdentityResponseEvent(
-            final String eventName, final Map<String, Object> eventData, final Event event) {
+        final String eventName, final Map<String, Object> eventData, final Event event) {
         Event newEvent;
         if (event == null) {
             newEvent =
-                    new Event.Builder(eventName, EventType.IDENTITY, EventSource.RESPONSE_IDENTITY)
-                            .setEventData(eventData)
-                            .build();
+                new Event.Builder(eventName, EventType.IDENTITY, EventSource.RESPONSE_IDENTITY)
+                    .setEventData(eventData)
+                    .build();
         } else {
             newEvent =
-                    new Event.Builder(eventName, EventType.IDENTITY, EventSource.RESPONSE_IDENTITY)
-                            .setEventData(eventData)
-                            .inResponseToEvent(event)
-                            .build();
+                new Event.Builder(eventName, EventType.IDENTITY, EventSource.RESPONSE_IDENTITY)
+                    .setEventData(eventData)
+                    .inResponseToEvent(event)
+                    .build();
         }
 
         getApi().dispatch(newEvent);
         Log.trace(
-                IdentityConstants.LOG_TAG,
-                LOG_SOURCE,
-                "dispatchResponse : Identity Response event has been added to event hub : %s",
-                newEvent.toString());
+            IdentityConstants.LOG_TAG,
+            LOG_SOURCE,
+            "dispatchResponse : Identity Response event has been added to event hub : %s",
+            newEvent.toString());
     }
 
     /**
@@ -1871,20 +1846,20 @@ public final class IdentityExtension extends Extension {
     @VisibleForTesting
     void handleIdentityConfigurationUpdateEvent(final Map<String, Object> eventData) {
         final Event event =
-                new Event.Builder(
-                                "Configuration Update From IdentityExtension",
-                                EventType.CONFIGURATION,
-                                EventSource.REQUEST_CONTENT)
-                        .setEventData(eventData)
-                        .build();
+            new Event.Builder(
+                "Configuration Update From IdentityExtension",
+                EventType.CONFIGURATION,
+                EventSource.REQUEST_CONTENT)
+                .setEventData(eventData)
+                .build();
 
         getApi().dispatch(event);
         Log.trace(
-                IdentityConstants.LOG_TAG,
-                LOG_SOURCE,
-                "dispatchConfigUpdateRequest : Configuration Update event has been added to event"
-                        + " hub : %s",
-                event.toString());
+            IdentityConstants.LOG_TAG,
+            LOG_SOURCE,
+            "dispatchConfigUpdateRequest : Configuration Update event has been added to event"
+                + " hub : %s",
+            event.toString());
     }
 
     /**
@@ -1904,10 +1879,10 @@ public final class IdentityExtension extends Extension {
         }
 
         String privacyString =
-                DataReader.optString(
-                        eventData,
-                        IdentityConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY,
-                        Defaults.DEFAULT_MOBILE_PRIVACY.getValue());
+            DataReader.optString(
+                eventData,
+                IdentityConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY,
+                Defaults.DEFAULT_MOBILE_PRIVACY.getValue());
 
         MobilePrivacyStatus newPrivacyStatus = MobilePrivacyStatus.fromString(privacyString);
 
@@ -1918,11 +1893,11 @@ public final class IdentityExtension extends Extension {
         privacyStatus = newPrivacyStatus;
 
         Log.trace(
-                IdentityConstants.LOG_TAG,
-                LOG_SOURCE,
-                "processPrivacyChange : Processed privacy change request. New privacy status is:"
-                        + " (%s).",
-                privacyStatus.getValue());
+            IdentityConstants.LOG_TAG,
+            LOG_SOURCE,
+            "processPrivacyChange : Processed privacy change request. New privacy status is:"
+                + " (%s).",
+            privacyStatus.getValue());
 
         if (privacyStatus == MobilePrivacyStatus.OPT_OUT) {
             mid = null;
@@ -1941,14 +1916,14 @@ public final class IdentityExtension extends Extension {
         } else if (StringUtils.isNullOrEmpty(mid)) {
             // Need to generate new Experience Cloud ID for the user
             ConfigurationSharedStateIdentity configSharedState =
-                    new ConfigurationSharedStateIdentity();
+                new ConfigurationSharedStateIdentity();
 
             SharedStateResult configState =
-                    getApi().getSharedState(
-                                    IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
-                                    event,
-                                    false,
-                                    SharedStateResolution.LAST_SET);
+                getApi().getSharedState(
+                    IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
+                    event,
+                    false,
+                    SharedStateResolution.LAST_SET);
             if (configState != null) {
                 configSharedState.getConfigurationProperties(configState.getValue());
             }
@@ -1969,22 +1944,22 @@ public final class IdentityExtension extends Extension {
     void savePersistently() {
         if (namedCollection == null) {
             Log.trace(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "savePersistently : Unable to save the IdentityExtension fields into"
-                            + " persistence because the data store was null.");
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "savePersistently : Unable to save the IdentityExtension fields into"
+                    + " persistence because the data store was null.");
             return;
         }
 
         storeOrRemovePersistentString(
-                namedCollection,
-                DataStoreKeys.VISITOR_IDS_STRING,
-                stringFromVisitorIdList(customerIds));
+            namedCollection,
+            DataStoreKeys.VISITOR_IDS_STRING,
+            stringFromVisitorIdList(customerIds));
         storeOrRemovePersistentString(namedCollection, DataStoreKeys.MARKETING_CLOUD_ID, mid);
         storeOrRemovePersistentString(
-                namedCollection, DataStoreKeys.PUSH_IDENTIFIER, pushIdentifier);
+            namedCollection, DataStoreKeys.PUSH_IDENTIFIER, pushIdentifier);
         storeOrRemovePersistentString(
-                namedCollection, DataStoreKeys.ADVERTISING_IDENTIFIER, advertisingIdentifier);
+            namedCollection, DataStoreKeys.ADVERTISING_IDENTIFIER, advertisingIdentifier);
         storeOrRemovePersistentString(namedCollection, DataStoreKeys.LOCATION_HINT, locationHint);
         storeOrRemovePersistentString(namedCollection, DataStoreKeys.BLOB, blob);
 
@@ -1992,9 +1967,9 @@ public final class IdentityExtension extends Extension {
         namedCollection.setLong(DataStoreKeys.LAST_SYNC, lastSync);
 
         Log.trace(
-                IdentityConstants.LOG_TAG,
-                LOG_SOURCE,
-                "savePersistently : Successfully saved the Identity data into persistence.");
+            IdentityConstants.LOG_TAG,
+            LOG_SOURCE,
+            "savePersistently : Successfully saved the Identity data into persistence.");
     }
 
     /**
@@ -2005,7 +1980,7 @@ public final class IdentityExtension extends Extension {
      * @param value {@link String} value for {@code key} in {@code store}
      */
     private static void storeOrRemovePersistentString(
-            final NamedCollection store, final String key, final String value) {
+        final NamedCollection store, final String key, final String value) {
         if (StringUtils.isNullOrEmpty(value)) {
             store.remove(key);
         } else {
@@ -2024,10 +1999,10 @@ public final class IdentityExtension extends Extension {
      * @return {@code String} containing a URL to be sent to the ECID Service
      */
     private String buildURLString(
-            final List<VisitorID> customerIds,
-            final Map<String, String> dpids,
-            final ConfigurationSharedStateIdentity configSharedState,
-            final boolean addConsentFlag) {
+        final List<VisitorID> customerIds,
+        final Map<String, String> dpids,
+        final ConfigurationSharedStateIdentity configSharedState,
+        final boolean addConsentFlag) {
         // LinkedHashMap keeps parameters in same order as they are set
         final Map<String, String> queryParameters = new LinkedHashMap<String, String>();
         queryParameters.put("d_ver", "2");
@@ -2040,8 +2015,8 @@ public final class IdentityExtension extends Extension {
                 // opt-out
                 queryParameters.put(IdentityConstants.UrlKeys.DEVICE_CONSENT, "0");
                 queryParameters.put(
-                        IdentityConstants.UrlKeys.CONSENT_INTEGRATION_CODE,
-                        IdentityConstants.EventDataKeys.Identity.ADID_DSID);
+                    IdentityConstants.UrlKeys.CONSENT_INTEGRATION_CODE,
+                    IdentityConstants.EventDataKeys.Identity.ADID_DSID);
             } else {
                 queryParameters.put(IdentityConstants.UrlKeys.DEVICE_CONSENT, "1");
             }
@@ -2063,9 +2038,9 @@ public final class IdentityExtension extends Extension {
 
         final URLBuilder urlBuilder = new URLBuilder();
         urlBuilder
-                .addPath("id")
-                .setServer(configSharedState.marketingCloudServer)
-                .addQueryParameters(queryParameters);
+            .addPath("id")
+            .setServer(configSharedState.marketingCloudServer)
+            .addQueryParameters(queryParameters);
 
         final String customerIdsString = generateURLEncodedValuesCustomerIdString(customerIds);
 
@@ -2107,9 +2082,9 @@ public final class IdentityExtension extends Extension {
 
         final URLBuilder urlBuilder = new URLBuilder();
         urlBuilder
-                .addPath(IdentityConstants.UrlKeys.PATH_OPTOUT)
-                .setServer(configSharedState.marketingCloudServer)
-                .addQueryParameters(queryParameters);
+            .addPath(IdentityConstants.UrlKeys.PATH_OPTOUT)
+            .setServer(configSharedState.marketingCloudServer)
+            .addQueryParameters(queryParameters);
 
         return urlBuilder.build();
     }
@@ -2125,24 +2100,24 @@ public final class IdentityExtension extends Extension {
      * @return whether identifiers should be synced to the server
      */
     private boolean shouldSync(
-            final List<VisitorID> identifiers,
-            final Map<String, String> dpids,
-            final boolean forceResync,
-            final ConfigurationSharedStateIdentity configuration) {
+        final List<VisitorID> identifiers,
+        final Map<String, String> dpids,
+        final boolean forceResync,
+        final ConfigurationSharedStateIdentity configuration) {
         boolean syncForProps = true;
         boolean syncForIds = true;
 
         if (!configuration.canSyncIdentifiersWithCurrentConfiguration()) {
             Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "shouldSync : Ignoring ID Sync due to privacy status opt-out or missing"
-                            + " experienceCloud.org.");
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "shouldSync : Ignoring ID Sync due to privacy status opt-out or missing"
+                    + " experienceCloud.org.");
             syncForProps = false;
         }
 
         final boolean needResync =
-                (TimeUtils.getUnixTimeInSeconds() - lastSync > ttl) || forceResync;
+            (TimeUtils.getUnixTimeInSeconds() - lastSync > ttl) || forceResync;
         final boolean hasIdentifiers = identifiers != null && !identifiers.isEmpty();
         final boolean hasDpids = dpids != null;
 
@@ -2216,26 +2191,26 @@ public final class IdentityExtension extends Extension {
                     // dependent extensions
                     iterator.remove();
                     Log.trace(
-                            IdentityConstants.LOG_TAG,
-                            LOG_SOURCE,
-                            "cleanupVisitorIdentifiers : VisitorID was discarded due to an"
-                                    + " empty/null identifier value.");
+                        IdentityConstants.LOG_TAG,
+                        LOG_SOURCE,
+                        "cleanupVisitorIdentifiers : VisitorID was discarded due to an"
+                            + " empty/null identifier value.");
                 }
             }
         } catch (NullPointerException e) {
             Log.error(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "cleanupVisitorIdentifiers : Caught NullPointerException while iterating"
-                            + " through visitor identifiers: %s",
-                    e.getLocalizedMessage());
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "cleanupVisitorIdentifiers : Caught NullPointerException while iterating"
+                    + " through visitor identifiers: %s",
+                e.getLocalizedMessage());
         } catch (ClassCastException e) {
             Log.error(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "cleanupVisitorIdentifiers : Caught ClassCastException while iterating through"
-                            + " visitor identifiers: %s",
-                    e.getLocalizedMessage());
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "cleanupVisitorIdentifiers : Caught ClassCastException while iterating through"
+                    + " visitor identifiers: %s",
+                e.getLocalizedMessage());
         }
 
         return cleanIdentifiers;
@@ -2260,11 +2235,11 @@ public final class IdentityExtension extends Extension {
         // quick out if there's no equals sign in our id string
         if (firstEqualsIndex == -1) {
             Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "parseCustomerIDStringToVisitorIDObject : Unable to load Visitor ID from"
-                            + " Shared Preferences: (%s).",
-                    customerIdString);
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "parseCustomerIDStringToVisitorIDObject : Unable to load Visitor ID from"
+                    + " Shared Preferences: (%s).",
+                customerIdString);
             return null;
         }
 
@@ -2277,54 +2252,54 @@ public final class IdentityExtension extends Extension {
             currentCustomerIdValue = customerIdString.substring(firstEqualsIndex + 1);
         } catch (final IndexOutOfBoundsException ex) {
             Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "parseCustomerIDStringToVisitorIDObject : Unable to load Visitor ID: (%s) from"
-                            + " Shared Preference because the name or value was malformed as in the"
-                            + " exception: (%s).",
-                    customerIdString,
-                    ex);
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "parseCustomerIDStringToVisitorIDObject : Unable to load Visitor ID: (%s) from"
+                    + " Shared Preference because the name or value was malformed as in the"
+                    + " exception: (%s).",
+                customerIdString,
+                ex);
             return null;
         }
 
         // make sure the value array has 3 entries
         final List<String> idInfo =
-                Arrays.asList(currentCustomerIdValue.split(Defaults.CID_DELIMITER));
+            Arrays.asList(currentCustomerIdValue.split(Defaults.CID_DELIMITER));
 
         if (idInfo.size() != IdentityConstants.ID_INFO_SIZE) {
             Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "parseCustomerIDStringToVisitorIDObject : Unable to load Visitor ID from"
-                            + " Shared Preferences because the value was malformed: (%s).",
-                    currentCustomerIdValue);
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "parseCustomerIDStringToVisitorIDObject : Unable to load Visitor ID from"
+                    + " Shared Preferences because the value was malformed: (%s).",
+                currentCustomerIdValue);
             return null;
         }
 
         if (StringUtils.isNullOrEmpty(idInfo.get(1))) {
             Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "parseCustomerIDStringToVisitorIDObject : Unable to load Visitor ID from"
-                            + " Shared Preferences because the ECID had null or empty id: (%s).",
-                    currentCustomerIdValue);
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "parseCustomerIDStringToVisitorIDObject : Unable to load Visitor ID from"
+                    + " Shared Preferences because the ECID had null or empty id: (%s).",
+                currentCustomerIdValue);
             return null;
         }
 
         try {
             return new VisitorID(
-                    currentCustomerIdOrigin,
-                    idInfo.get(0),
-                    idInfo.get(1),
-                    VisitorID.AuthenticationState.fromInteger(Integer.parseInt(idInfo.get(2))));
+                currentCustomerIdOrigin,
+                idInfo.get(0),
+                idInfo.get(1),
+                VisitorID.AuthenticationState.fromInteger(Integer.parseInt(idInfo.get(2))));
         } catch (final NumberFormatException | IllegalStateException ex) {
             Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "parseCustomerIDStringToVisitorIDObject : Unable to parse the ECID: (%s) due"
-                            + " to an exception: (%s).",
-                    customerIdString,
-                    ex.getLocalizedMessage());
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "parseCustomerIDStringToVisitorIDObject : Unable to parse the ECID: (%s) due"
+                    + " to an exception: (%s).",
+                customerIdString,
+                ex.getLocalizedMessage());
         }
 
         return null;
@@ -2394,41 +2369,41 @@ public final class IdentityExtension extends Extension {
 
         if (identityResponseObject == null) {
             Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "handleNetworkResponseMap : Received an empty JSON in response from ECID"
-                            + " Service, so there is nothing to handle.");
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "handleNetworkResponseMap : Received an empty JSON in response from ECID"
+                    + " Service, so there is nothing to handle.");
             return false;
         }
 
         if (identityResponseObject.optOutList != null
-                && !identityResponseObject.optOutList.isEmpty()) {
+            && !identityResponseObject.optOutList.isEmpty()) {
             Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "handleNetworkResponseMap : Received opt-out response from ECID Service, so"
-                            + " updating the privacy status in the configuration to opt-out.");
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "handleNetworkResponseMap : Received opt-out response from ECID Service, so"
+                    + " updating the privacy status in the configuration to opt-out.");
 
             Map<String, Object> updateConfig = new HashMap<>();
             updateConfig.put(
-                    IdentityConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY,
-                    MobilePrivacyStatus.OPT_OUT.getValue());
+                IdentityConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY,
+                MobilePrivacyStatus.OPT_OUT.getValue());
 
             Map<String, Object> eventData = new HashMap<>();
             eventData.put(
-                    IdentityConstants.EventDataKeys.Configuration
-                            .CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG,
-                    updateConfig);
+                IdentityConstants.EventDataKeys.Configuration
+                    .CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG,
+                updateConfig);
             handleIdentityConfigurationUpdateEvent(eventData);
         }
 
         // something's wrong - n/w call returned an error. update the pending state.
         if (!StringUtils.isNullOrEmpty(identityResponseObject.error)) {
             Log.warning(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "handleNetworkResponseMap : ECID Service returned an error: (%s).",
-                    identityResponseObject.error);
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "handleNetworkResponseMap : ECID Service returned an error: (%s).",
+                identityResponseObject.error);
 
             // should never happen bc we generate mid locally before n/w request.
             // Still, generate mid locally if there's none yet.
@@ -2443,19 +2418,19 @@ public final class IdentityExtension extends Extension {
 
         // Only update stored properties if mid in response is same as what we have locally
         if (!StringUtils.isNullOrEmpty(identityResponseObject.mid)
-                && identityResponseObject.mid.equals(mid)) {
+            && identityResponseObject.mid.equals(mid)) {
             try {
                 if ((identityResponseObject.blob != null
-                                && !identityResponseObject.blob.equals(blob))
-                        || (StringUtils.isNullOrEmpty(identityResponseObject.blob)
-                                && !StringUtils.isNullOrEmpty(blob))) {
+                    && !identityResponseObject.blob.equals(blob))
+                    || (StringUtils.isNullOrEmpty(identityResponseObject.blob)
+                    && !StringUtils.isNullOrEmpty(blob))) {
                     requiresSharedStateUpdate = true;
                 }
 
                 if ((identityResponseObject.hint != null
-                                && !identityResponseObject.hint.equals(locationHint))
-                        || (StringUtils.isNullOrEmpty(identityResponseObject.hint)
-                                && !StringUtils.isNullOrEmpty(locationHint))) {
+                    && !identityResponseObject.hint.equals(locationHint))
+                    || (StringUtils.isNullOrEmpty(identityResponseObject.hint)
+                    && !StringUtils.isNullOrEmpty(locationHint))) {
                     requiresSharedStateUpdate = true;
                 }
 
@@ -2463,21 +2438,21 @@ public final class IdentityExtension extends Extension {
                 locationHint = identityResponseObject.hint;
                 ttl = identityResponseObject.ttl;
                 Log.debug(
-                        IdentityConstants.LOG_TAG,
-                        LOG_SOURCE,
-                        "handleNetworkResponseMap : ECID Service returned (mid: %s, blob: %s,"
-                                + " hint: %s, ttl: %d).",
-                        mid,
-                        blob,
-                        locationHint,
-                        ttl);
+                    IdentityConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "handleNetworkResponseMap : ECID Service returned (mid: %s, blob: %s,"
+                        + " hint: %s, ttl: %d).",
+                    mid,
+                    blob,
+                    locationHint,
+                    ttl);
             } catch (final Exception ex) {
                 Log.warning(
-                        IdentityConstants.LOG_TAG,
-                        LOG_SOURCE,
-                        "handleNetworkResponseMap : Error parsing the response from ECID Service :"
-                                + " (%s).",
-                        ex);
+                    IdentityConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "handleNetworkResponseMap : Error parsing the response from ECID Service :"
+                        + " (%s).",
+                    ex);
             }
         }
 
@@ -2489,15 +2464,15 @@ public final class IdentityExtension extends Extension {
         eventData.put(IdentityConstants.EventDataKeys.Identity.FORCE_SYNC, true);
         eventData.put(IdentityConstants.EventDataKeys.Identity.IS_SYNC_EVENT, true);
         eventData.put(
-                IdentityConstants.EventDataKeys.Identity.AUTHENTICATION_STATE,
-                VisitorID.AuthenticationState.UNKNOWN.getValue());
+            IdentityConstants.EventDataKeys.Identity.AUTHENTICATION_STATE,
+            VisitorID.AuthenticationState.UNKNOWN.getValue());
 
         return new Event.Builder(
-                        "id-construct-forced-sync",
-                        EventType.IDENTITY,
-                        EventSource.REQUEST_IDENTITY)
-                .setEventData(eventData)
-                .build();
+            "id-construct-forced-sync",
+            EventType.IDENTITY,
+            EventSource.REQUEST_IDENTITY)
+            .setEventData(eventData)
+            .build();
     }
 
     /**
@@ -2517,8 +2492,8 @@ public final class IdentityExtension extends Extension {
         }
 
         return visitorId1.getIdType() != null
-                ? visitorId1.getIdType().equals(visitorId2.getIdType())
-                : visitorId2.getIdType() == null;
+            ? visitorId1.getIdType().equals(visitorId2.getIdType())
+            : visitorId2.getIdType() == null;
     }
 
     /**
@@ -2530,10 +2505,10 @@ public final class IdentityExtension extends Extension {
      */
     private void loadPrivacyStatusFromConfigurationState(final Map<String, Object> configState) {
         String privacyString =
-                DataReader.optString(
-                        configState,
-                        IdentityConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY,
-                        Defaults.DEFAULT_MOBILE_PRIVACY.getValue());
+            DataReader.optString(
+                configState,
+                IdentityConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY,
+                Defaults.DEFAULT_MOBILE_PRIVACY.getValue());
 
         privacyStatus = MobilePrivacyStatus.fromString(privacyString);
     }

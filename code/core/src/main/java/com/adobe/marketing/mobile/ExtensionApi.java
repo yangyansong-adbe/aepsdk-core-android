@@ -13,6 +13,8 @@ package com.adobe.marketing.mobile;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import com.adobe.marketing.mobile.services.Log;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -40,6 +42,15 @@ public abstract class ExtensionApi {
      * @param event An Event to be dispatched to the {@code EventHub}
      */
     public abstract void dispatch(@NonNull final Event event);
+
+    public void handle(@NonNull final Event triggerEvent){
+        Log.debug("X", "X", new HashMap<String, Object>() {{
+            put("operation", "Event tracking");
+            put("trigger_event_uuid", triggerEvent.getUniqueIdentifier());
+            put("event_uuid", "");
+            put("trigger_event_data",triggerEvent.getEventData());
+        }}, "trigger_event_uuid = " + triggerEvent.getUniqueIdentifier() + ", event_uuid = null");
+    }
 
     /** Starts the `Event` queue for this extension */
     public abstract void startEvents();
