@@ -8,14 +8,14 @@
  */
 
 rootProject.name = 'aepsdk-core-android'
-include ':android-core-library',
-        ':android-lifecycle-library',
-        ':android-identity-library',
-        ':android-signal-library',
-        ':android-core-compatiblity',
-        ':integration-tests',
-        ':test-third-party-extension',
+include ':core',
+        ':lifecycle',
+        ':identity',
+        ':signal',
         ':testapp',
         ':testapp-kotlin',
-        ':macrobenchmark'
-include ':microbenchmark'
+        ':integration-tests',
+        ':test-third-party-extension',
+        ':macrobenchmark',
+        ':microbenchmark',
+        ':sdk-bom'
