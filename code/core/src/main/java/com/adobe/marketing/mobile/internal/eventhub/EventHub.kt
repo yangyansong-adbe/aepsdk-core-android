@@ -251,11 +251,11 @@ internal class EventHub(val eventHistory: EventHistory?) {
             return
         }
 
-        Log.trace(CoreConstants.LOG_TAG, LOG_TAG,
-            mapOf(
+        Log.trace(
+            CoreConstants.LOG_TAG, LOG_TAG, mapOf(
                 "operation" to "EventHub started"
-            ),
-            "EventHub started. Will begin processing events")
+            ), "EventHub started. Will begin processing events"
+        )
 
         this.hubStarted = true
         this.eventDispatcher.start()
@@ -358,33 +358,23 @@ internal class EventHub(val eventHistory: EventHistory?) {
      * @param extensionClass The class of extension to register
      * @param error Error denoting the status of registration
      */
-<<<<<<< HEAD:code/android-core-library/src/main/java/com/adobe/marketing/mobile/internal/eventhub/EventHub.kt
     private fun extensionPostRegistration(
         extensionClass: Class<out Extension>,
         error: EventHubError
     ) {
-
         if (error != EventHubError.None) {
-            Log.debug(
+            Log.warning(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
                 "Extension $extensionClass registration failed with error $error"
             )
             unregisterExtensionInternal(extensionClass)
         } else {
-            Log.debug(
+            Log.trace(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
                 "Extension $extensionClass registered successfully"
             )
-=======
-    private fun extensionPostRegistration(extensionClass: Class<out Extension>, error: EventHubError) {
-        if (error != EventHubError.None) {
-            Log.warning(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass registration failed with error $error")
-            unregisterExtensionInternal(extensionClass)
-        } else {
-            Log.trace(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass registered successfully")
->>>>>>> acf498063ec181141a98ce8f9e2d1f5e22db4336:code/core/src/main/java/com/adobe/marketing/mobile/internal/eventhub/EventHub.kt
             shareEventHubSharedState()
         }
 
@@ -418,25 +408,18 @@ internal class EventHub(val eventHistory: EventHistory?) {
         if (container != null) {
             container.shutdown()
             shareEventHubSharedState()
-<<<<<<< HEAD:code/android-core-library/src/main/java/com/adobe/marketing/mobile/internal/eventhub/EventHub.kt
-            Log.debug(
+            Log.trace(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
                 "Extension $extensionClass unregistered successfully"
             )
             error = EventHubError.None
         } else {
-            Log.debug(
+            Log.warning(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
                 "Extension $extensionClass unregistration failed as extension was not registered"
             )
-=======
-            Log.trace(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass unregistered successfully")
-            error = EventHubError.None
-        } else {
-            Log.warning(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass unregistration failed as extension was not registered")
->>>>>>> acf498063ec181141a98ce8f9e2d1f5e22db4336:code/core/src/main/java/com/adobe/marketing/mobile/internal/eventhub/EventHub.kt
             error = EventHubError.ExtensionNotRegistered
         }
 
@@ -578,17 +561,13 @@ internal class EventHub(val eventHistory: EventHistory?) {
             Log.debug(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
-<<<<<<< HEAD:code/android-core-library/src/main/java/com/adobe/marketing/mobile/internal/eventhub/EventHub.kt
                 mapOf(
                     "operation" to "$sharedStateType state",
                     "extension" to extensionName,
                     "shared_state" to state,
                     "shared_state_version" to version
                 ),
-                "Created $sharedStateType shared state for extension $extensionName with version $version and data ${state?.prettify()}"
-=======
                 "Created $sharedStateType shared state for extension \"$extensionName\" with version $version and data ${state?.prettify()}"
->>>>>>> acf498063ec181141a98ce8f9e2d1f5e22db4336:code/core/src/main/java/com/adobe/marketing/mobile/internal/eventhub/EventHub.kt
             )
             dispatchSharedStateEvent(sharedStateType, extensionName)
         }
@@ -694,14 +673,10 @@ internal class EventHub(val eventHistory: EventHistory?) {
             Log.debug(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
-<<<<<<< HEAD:code/android-core-library/src/main/java/com/adobe/marketing/mobile/internal/eventhub/EventHub.kt
                 mapOf(
                     "operation" to "Resolved pending shared state"
                 ),
-                "Resolved pending $sharedStateType shared state for $extensionName and version $version with data ${immutableState?.prettify()}"
-=======
                 "Resolved pending $sharedStateType shared state for \"$extensionName\" and version $version with data ${immutableState?.prettify()}"
->>>>>>> acf498063ec181141a98ce8f9e2d1f5e22db4336:code/core/src/main/java/com/adobe/marketing/mobile/internal/eventhub/EventHub.kt
             )
             dispatchSharedStateEvent(sharedStateType, extensionName)
         }

@@ -13,60 +13,53 @@ package com.adobe.marketing.mobile.services;
 
 import android.util.Log;
 
-<<<<<<< HEAD:code/android-core-library/src/phone/java/com/adobe/marketing/mobile/services/AndroidLoggingService.java
 import java.util.Map;
 
 /**
  * The Android implementation for for {@link Logging}.
  */
-=======
-/** The Android implementation for for {@link Logging}. */
->>>>>>> acf498063ec181141a98ce8f9e2d1f5e22db4336:code/core/src/phone/java/com/adobe/marketing/mobile/services/AndroidLoggingService.java
 class AndroidLoggingService implements Logging {
 
-    private static final String TAG = "AdobeExperienceSDK";
+  private static final String TAG = "AdobeExperienceSDK";
 
-    @Override
-    public void trace(final String tag, final String message) {
-        Log.v(TAG, tag + " - " + message);
-    }
+  @Override
+  public void trace(final String tag, final String message) {
+    Log.v(TAG, tag + " - " + message);
+  }
 
-    @Override
-    public void trace(String tag, String message, Map<String, Object> metaData) {
+  @Override
+  public void trace(String tag, String message, Map<String, Object> metaData) {
 
-    }
+  }
 
-    @Override
-    public void debug(final String tag, final String message) {
-        Log.d(TAG, tag + " - " + message);
-    }
+  @Override
+  public void debug(final String tag, final String message) {
+    Log.d(TAG, tag + " - " + message);
+  }
 
-    @Override
-    public void debug(String tag, String message, Map<String, Object> metaData) {
+  @Override
+  public void debug(String tag, String message, Map<String, Object> metaData) {
 
-    }
+  }
 
-    @Override
-    public void warning(final String tag, final String message) {
-        Log.w(TAG, tag + " - " + message);
-    }
+  @Override
+  public void warning(final String tag, final String message) {
+    Log.w(TAG, tag + " - " + message);
+  }
 
-    @Override
-    public void warning(String tag, String message, Map<String, Object> metaData) {
+  @Override
+  public void warning(String tag, String message, Map<String, Object> metaData) {
 
-    }
+  }
 
-    @Override
-    public void error(final String tag, final String message) {
-        Log.e(TAG, tag + " - " + message);
-    }
-<<<<<<< HEAD:code/android-core-library/src/phone/java/com/adobe/marketing/mobile/services/AndroidLoggingService.java
+  @Override
+  public void error(final String tag, final String message) {
+    Log.e(TAG, tag + " - " + message);
+  }
 
-    @Override
-    public void error(String tag, String message, Map<String, Object> metaData) {
+  @Override
+  public void error(String tag, String message, Map<String, Object> metaData) {
 
-    }
+  }
 
-=======
->>>>>>> acf498063ec181141a98ce8f9e2d1f5e22db4336:code/core/src/phone/java/com/adobe/marketing/mobile/services/AndroidLoggingService.java
 }
