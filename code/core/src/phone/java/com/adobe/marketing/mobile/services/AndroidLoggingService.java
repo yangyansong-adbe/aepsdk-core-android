@@ -13,28 +13,53 @@ package com.adobe.marketing.mobile.services;
 
 import android.util.Log;
 
-/** The Android implementation for for {@link Logging}. */
+import java.util.Map;
+
+/**
+ * The Android implementation for for {@link Logging}.
+ */
 class AndroidLoggingService implements Logging {
 
-    private static final String TAG = "AdobeExperienceSDK";
+  private static final String TAG = "AdobeExperienceSDK";
 
-    @Override
-    public void trace(final String tag, final String message) {
-        Log.v(TAG, tag + " - " + message);
-    }
+  @Override
+  public void trace(final String tag, final String message) {
+    Log.v(TAG, tag + " - " + message);
+  }
 
-    @Override
-    public void debug(final String tag, final String message) {
-        Log.d(TAG, tag + " - " + message);
-    }
+  @Override
+  public void trace(String tag, String message, Map<String, Object> metaData) {
 
-    @Override
-    public void warning(final String tag, final String message) {
-        Log.w(TAG, tag + " - " + message);
-    }
+  }
 
-    @Override
-    public void error(final String tag, final String message) {
-        Log.e(TAG, tag + " - " + message);
-    }
+  @Override
+  public void debug(final String tag, final String message) {
+    Log.d(TAG, tag + " - " + message);
+  }
+
+  @Override
+  public void debug(String tag, String message, Map<String, Object> metaData) {
+
+  }
+
+  @Override
+  public void warning(final String tag, final String message) {
+    Log.w(TAG, tag + " - " + message);
+  }
+
+  @Override
+  public void warning(String tag, String message, Map<String, Object> metaData) {
+
+  }
+
+  @Override
+  public void error(final String tag, final String message) {
+    Log.e(TAG, tag + " - " + message);
+  }
+
+  @Override
+  public void error(String tag, String message, Map<String, Object> metaData) {
+
+  }
+
 }

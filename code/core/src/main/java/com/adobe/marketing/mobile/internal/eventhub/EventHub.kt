@@ -37,8 +37,10 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -85,7 +87,8 @@ internal class EventHub(val eventHistory: EventHistory?) {
      * Concurrent list which stores the registered event preprocessors.
      * Preprocessors will be executed on each event before distributing it to extension queue.
      */
-    private val eventPreprocessors: ConcurrentLinkedQueue<EventPreprocessor> = ConcurrentLinkedQueue()
+    private val eventPreprocessors: ConcurrentLinkedQueue<EventPreprocessor> =
+        ConcurrentLinkedQueue()
 
     /**
      * Atomic counter which is incremented when processing event and shared state.
@@ -225,7 +228,11 @@ internal class EventHub(val eventHistory: EventHistory?) {
     fun start(completion: (() -> Unit)? = null) {
         eventHubExecutor.submit {
             if (hubStartReceived) {
-                Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Dropping start call as it was already received")
+                Log.debug(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "Dropping start call as it was already received"
+                )
                 return@submit
             }
 
@@ -246,7 +253,11 @@ internal class EventHub(val eventHistory: EventHistory?) {
             return
         }
 
-        Log.trace(CoreConstants.LOG_TAG, LOG_TAG, "EventHub started. Will begin processing events")
+        Log.trace(
+            CoreConstants.LOG_TAG, LOG_TAG, mapOf(
+                "operation" to "EventHub started"
+            ), "EventHub started. Will begin processing events"
+        )
 
         this.hubStarted = true
         this.eventDispatcher.start()
@@ -273,10 +284,32 @@ internal class EventHub(val eventHistory: EventHistory?) {
         }
     }
 
+    private val eventQueue = LinkedBlockingQueue<Event>()
+    private val eventHubShouldBePaused = AtomicBoolean(false)
+
     /**
      * Internal method to dispatch an event
      */
     private fun dispatchInternal(event: Event) {
+        if (event.type == "debug") {
+            when (event.eventData["action"]) {
+                "pause" -> {
+                    eventHubShouldBePaused.set(true)
+                }
+                "resume" -> {
+                    eventHubShouldBePaused.set(false)
+                    while (eventQueue.isNotEmpty()) {
+                        dispatchInternal(eventQueue.poll())
+                    }
+                }
+            }
+
+            return
+        }
+        if (eventHubShouldBePaused.get()) {
+            eventQueue.add(event)
+            return
+        }
         val eventNumber = lastEventNumber.incrementAndGet()
         eventNumberMap[event.uniqueIdentifier] = eventNumber
 
@@ -293,6 +326,11 @@ internal class EventHub(val eventHistory: EventHistory?) {
             Log.debug(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
+                mapOf(
+                    "operation" to "Event($eventNumber)",
+                    "event_number" to eventNumber,
+                    "event_uuid" to event.uniqueIdentifier
+                ),
                 "Dispatching Event #$eventNumber - ($event)"
             )
         }
@@ -344,12 +382,23 @@ internal class EventHub(val eventHistory: EventHistory?) {
      * @param extensionClass The class of extension to register
      * @param error Error denoting the status of registration
      */
-    private fun extensionPostRegistration(extensionClass: Class<out Extension>, error: EventHubError) {
+    private fun extensionPostRegistration(
+        extensionClass: Class<out Extension>,
+        error: EventHubError
+    ) {
         if (error != EventHubError.None) {
-            Log.warning(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass registration failed with error $error")
+            Log.warning(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
+                "Extension $extensionClass registration failed with error $error"
+            )
             unregisterExtensionInternal(extensionClass)
         } else {
-            Log.trace(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass registered successfully")
+            Log.trace(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
+                "Extension $extensionClass registered successfully"
+            )
             shareEventHubSharedState()
         }
 
@@ -383,10 +432,18 @@ internal class EventHub(val eventHistory: EventHistory?) {
         if (container != null) {
             container.shutdown()
             shareEventHubSharedState()
-            Log.trace(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass unregistered successfully")
+            Log.trace(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
+                "Extension $extensionClass unregistered successfully"
+            )
             error = EventHubError.None
         } else {
-            Log.warning(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass unregistration failed as extension was not registered")
+            Log.warning(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
+                "Extension $extensionClass unregistration failed as extension was not registered"
+            )
             error = EventHubError.ExtensionNotRegistered
         }
 
@@ -528,6 +585,12 @@ internal class EventHub(val eventHistory: EventHistory?) {
             Log.debug(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
+                mapOf(
+                    "operation" to "$sharedStateType state",
+                    "extension" to extensionName,
+                    "shared_state" to state,
+                    "shared_state_version" to version
+                ),
                 "Created $sharedStateType shared state for extension \"$extensionName\" with version $version and data ${state?.prettify()}"
             )
             dispatchSharedStateEvent(sharedStateType, extensionName)
@@ -634,6 +697,9 @@ internal class EventHub(val eventHistory: EventHistory?) {
             Log.debug(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
+                mapOf(
+                    "operation" to "Resolved pending shared state"
+                ),
                 "Resolved pending $sharedStateType shared state for \"$extensionName\" and version $version with data ${immutableState?.prettify()}"
             )
             dispatchSharedStateEvent(sharedStateType, extensionName)
@@ -786,11 +852,11 @@ internal class EventHub(val eventHistory: EventHistory?) {
     private fun getExtensionContainer(extensionName: String): ExtensionContainer? {
         val extensionContainer = registeredExtensions.entries.firstOrNull {
             return@firstOrNull (
-                it.value.sharedStateName?.equals(
-                    extensionName,
-                    true
-                ) ?: false
-                )
+                    it.value.sharedStateName?.equals(
+                        extensionName,
+                        true
+                    ) ?: false
+                    )
         }
         return extensionContainer?.value
     }

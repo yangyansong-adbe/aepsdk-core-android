@@ -90,6 +90,7 @@ internal class ExtensionContainer constructor(
         }
 
     private val initJob = Runnable {
+        Thread.currentThread().name = extensionClass.simpleName
         val extension = extensionClass.initWith(this)
         if (extension == null) {
             callback(EventHubError.ExtensionInitializationFailure)

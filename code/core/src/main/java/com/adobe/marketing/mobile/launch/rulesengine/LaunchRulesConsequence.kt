@@ -78,8 +78,8 @@ internal class LaunchRulesConsequence(
                                 LaunchRulesEngineConstants.LOG_TAG,
                                 logTag,
                                 "Unable to process dispatch consequence, max chained " +
-                                    "dispatch consequences limit of $MAX_CHAINED_CONSEQUENCE_COUNT" +
-                                    "met for this event uuid ${event.uniqueIdentifier}"
+                                        "dispatch consequences limit of $MAX_CHAINED_CONSEQUENCE_COUNT" +
+                                        "met for this event uuid ${event.uniqueIdentifier}"
                             )
                             continue
                         }
@@ -91,6 +91,11 @@ internal class LaunchRulesConsequence(
                         Log.trace(
                             LaunchRulesEngineConstants.LOG_TAG,
                             logTag,
+                            mapOf(
+                                "operation" to "Consequence event",
+                                "trigger_event_uuid" to event.uniqueIdentifier,
+                                "event_uuid" to dispatchEvent.uniqueIdentifier
+                            ),
                             "processDispatchConsequence - Dispatching event - ${dispatchEvent.uniqueIdentifier}"
                         )
                         extensionApi.dispatch(dispatchEvent)
@@ -101,6 +106,12 @@ internal class LaunchRulesConsequence(
                         Log.trace(
                             LaunchRulesEngineConstants.LOG_TAG,
                             logTag,
+                            mapOf(
+                                "operation" to "Consequence event",
+                                "trigger_event_uuid" to event.uniqueIdentifier,
+                                "event_uuid" to consequenceEvent.uniqueIdentifier,
+                                "consequence_event_data" to consequenceEvent.eventData
+                            ),
                             "evaluateRulesConsequence - Dispatching consequence event ${consequenceEvent.uniqueIdentifier}"
                         )
                         extensionApi.dispatch(consequenceEvent)

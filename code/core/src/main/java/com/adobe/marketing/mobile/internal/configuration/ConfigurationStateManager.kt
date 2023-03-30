@@ -119,6 +119,9 @@ internal class ConfigurationStateManager {
             Log.trace(
                 ConfigurationExtension.TAG,
                 LOG_TAG,
+                mapOf(
+                    "operation" to "no cached app id"
+                ),
                 "AppID from persistence and manifest is null."
             )
             loadBundledConfig(CONFIG_BUNDLED_FILE_NAME)
@@ -157,6 +160,9 @@ internal class ConfigurationStateManager {
             Log.debug(
                 ConfigurationExtension.TAG,
                 LOG_TAG,
+                mapOf(
+                    "operation" to "no bundled config"
+                ),
                 "Bundled config asset is not present/is empty. Cannot load bundled config."
             )
             return null
@@ -323,6 +329,9 @@ internal class ConfigurationStateManager {
             Log.trace(
                 ConfigurationExtension.TAG,
                 LOG_TAG,
+                mapOf(
+                    "operation" to "No cached config"
+                ),
                 "Cached config is null/empty."
             )
             return null
@@ -420,6 +429,11 @@ internal class ConfigurationStateManager {
         Log.trace(
             ConfigurationExtension.TAG,
             LOG_TAG,
+            mapOf(
+                "operation" to "Replace config",
+                "newConfig" to config,
+                "mergedConfig" to currentConfiguration
+            ),
             "Replaced configuration."
         )
     }

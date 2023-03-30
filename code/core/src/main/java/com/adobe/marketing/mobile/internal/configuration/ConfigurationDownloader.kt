@@ -156,6 +156,9 @@ internal class ConfigurationDownloader {
                 Log.debug(
                     ConfigurationExtension.TAG,
                     LOG_TAG,
+                    mapOf(
+                        "operation" to "remote config is not modified"
+                    ),
                     "Configuration from $url has not been modified. Fetching from cache."
                 )
 
