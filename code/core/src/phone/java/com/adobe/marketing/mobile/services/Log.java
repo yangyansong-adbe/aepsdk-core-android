@@ -197,4 +197,17 @@ public class Log {
       }
     }
   }
+
+  public static void error(@NonNull final String extension, @NonNull final String source,
+      @NonNull final Map<String, Object> metaData, @NonNull final String format,
+      final Object... params) {
+    Logging loggingService = ServiceProvider.getInstance().getLoggingService();
+    if (loggingService != null && loggingMode.ordinal() >= LoggingMode.ERROR.id) {
+      try {
+        loggingService.error(extension + "/" + source, String.format(format, params), metaData);
+      } catch (Exception e) {
+        loggingService.error(source, format);
+      }
+    }
+  }
 }

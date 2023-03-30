@@ -37,8 +37,10 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -282,10 +284,32 @@ internal class EventHub(val eventHistory: EventHistory?) {
         }
     }
 
+    private val eventQueue = LinkedBlockingQueue<Event>()
+    private val eventHubShouldBePaused = AtomicBoolean(false)
+
     /**
      * Internal method to dispatch an event
      */
     private fun dispatchInternal(event: Event) {
+        if (event.type == "debug") {
+            when (event.eventData["action"]) {
+                "pause" -> {
+                    eventHubShouldBePaused.set(true)
+                }
+                "resume" -> {
+                    eventHubShouldBePaused.set(false)
+                    while (eventQueue.isNotEmpty()) {
+                        dispatchInternal(eventQueue.poll())
+                    }
+                }
+            }
+
+            return
+        }
+        if (eventHubShouldBePaused.get()) {
+            eventQueue.add(event)
+            return
+        }
         val eventNumber = lastEventNumber.incrementAndGet()
         eventNumberMap[event.uniqueIdentifier] = eventNumber
 
