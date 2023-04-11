@@ -24,7 +24,7 @@ class MyApp : Application() {
         super.onCreate()
         MobileCore.setApplication(this)
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
-        // MobileCore.configureWithAppID("YOUR_APP_ID")
+         MobileCore.configureWithAppID("036a1d363b93/4ab9eb80fb78/launch-9460797cb97b-staging")
         val extensions = listOf(Identity.EXTENSION, Signal.EXTENSION, Lifecycle.EXTENSION, PerfExtension::class.java)
         MobileCore.registerExtensions(extensions) {
 
