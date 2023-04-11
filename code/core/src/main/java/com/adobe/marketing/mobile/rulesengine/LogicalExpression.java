@@ -16,63 +16,63 @@ import java.util.List;
 
 public class LogicalExpression implements Evaluable {
 
-    public final List<Evaluable> operands;
-    public final String operationName;
+  public final List<Evaluable> operands;
+  public final String operationName;
 
-    public LogicalExpression(final List<Evaluable> operands, final String operationName) {
-        this.operands = operands;
-        this.operationName = operationName;
+  public LogicalExpression(final List<Evaluable> operands, final String operationName) {
+    this.operands = operands;
+    this.operationName = operationName;
+  }
+
+  @Override
+  public RulesResult evaluate(final Context context) {
+
+    if (operationName == null || operationName.isEmpty()) {
+      return new RulesResult(
+          RulesResult.FailureType.MISSING_OPERATOR,
+          "Null or empty operator for logical expression");
     }
-
-    @Override
-    public RulesResult evaluate(final Context context) {
-        ArrayList<RulesResult> resolvedOperands = new ArrayList<>();
-
-        if (operationName == null || operationName.isEmpty()) {
-            return new RulesResult(
-                    RulesResult.FailureType.MISSING_OPERATOR,
-                    "Null or empty operator for logical expression");
-        }
-
-        if (operands != null) {
-            for (Evaluable evaluable : operands) {
-                if (evaluable != null) {
-                    resolvedOperands.add(evaluable.evaluate(context));
-                }
-            }
-        }
-
-        switch (operationName) {
-            case "and":
-                return performAndOperation(resolvedOperands);
-            case "or":
-                return performOrOperation(resolvedOperands);
-            default:
-                return new RulesResult(
-                        RulesResult.FailureType.MISSING_OPERATOR,
-                        String.format("Unknown conjunction operator - %s.", operationName));
-        }
-    }
-
-    private RulesResult performAndOperation(final List<RulesResult> resolvedOperands) {
-        for (RulesResult rulesResult : resolvedOperands) {
-            if (!rulesResult.isSuccess()) {
-                return new RulesResult(
-                        RulesResult.FailureType.CONDITION_FAILED, "AND operation returned false.");
-            }
-        }
-
-        return RulesResult.SUCCESS;
-    }
-
-    private RulesResult performOrOperation(final List<RulesResult> resolvedOperands) {
-        for (RulesResult rulesResult : resolvedOperands) {
-            if (rulesResult.isSuccess()) {
-                return RulesResult.SUCCESS;
-            }
-        }
-
+    switch (operationName) {
+      case "and":
+        return performAndOperation(context, operands);
+      case "or":
+        return performOrOperation(context, operands);
+      default:
         return new RulesResult(
-                RulesResult.FailureType.CONDITION_FAILED, "OR operation returned false.");
+            RulesResult.FailureType.MISSING_OPERATOR,
+            String.format("Unknown conjunction operator - %s.", operationName));
     }
+
+  }
+
+  private RulesResult performAndOperation(final Context context,
+      final List<Evaluable> resolvedOperands) {
+    for (Evaluable evaluable : resolvedOperands) {
+      if (evaluable != null) {
+        RulesResult rulesResult = evaluable.evaluate(context);
+        if (!rulesResult.isSuccess()) {
+          return new RulesResult(
+              RulesResult.FailureType.CONDITION_FAILED, "AND operation returned false.");
+        }
+      }
+    }
+
+    return RulesResult.SUCCESS;
+  }
+
+  private RulesResult performOrOperation(final Context context,
+      final List<Evaluable> resolvedOperands) {
+    for (Evaluable evaluable : resolvedOperands) {
+      if (evaluable != null) {
+        RulesResult rulesResult = evaluable.evaluate(context);
+        if (rulesResult.isSuccess()) {
+          return RulesResult.SUCCESS;
+        }
+      }
+    }
+    return new RulesResult(
+        RulesResult.FailureType.CONDITION_FAILED, "OR operation returned false.");
+
+  }
+
 }
