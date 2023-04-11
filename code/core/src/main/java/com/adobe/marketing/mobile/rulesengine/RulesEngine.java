@@ -44,7 +44,10 @@ public class RulesEngine<T extends Rule> {
             }
             long endTime = System.currentTimeMillis();
             long timeElapsed = endTime - startTime;
-            Log.debug("RulesEngine","RulesEngine<T extends Rule>","timeElapsed="+timeElapsed+" rules="+rules.size());
+            Log.debug(
+                    "RulesEngine",
+                    "RulesEngine<T extends Rule>",
+                    "timeElapsed=" + timeElapsed + " rules=" + rules.size());
             return triggerRules;
         }
     }
