@@ -11,8 +11,8 @@
 package com.adobe.marketing.mobile.app.kotlin
 
 import android.app.Application
+import com.adobe.marketing.mobile.Edge
 import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.Identity
 import com.adobe.marketing.mobile.Lifecycle
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.Signal
@@ -25,9 +25,9 @@ class MyApp : Application() {
         MobileCore.setApplication(this)
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
         // MobileCore.configureWithAppID("YOUR_APP_ID")
-        val extensions = listOf(Identity.EXTENSION, Signal.EXTENSION, Lifecycle.EXTENSION, PerfExtension::class.java)
+        val extensions = listOf(com.adobe.marketing.mobile.edge.identity.Identity.EXTENSION, Edge.EXTENSION, Signal.EXTENSION, Lifecycle.EXTENSION, PerfExtension::class.java)
         MobileCore.registerExtensions(extensions) {
-
+            MobileCore.configureWithAppID("3805cb8645dd/ced0fdcb6ac9/launch-14d6393c1d48-development")
         }
     }
 

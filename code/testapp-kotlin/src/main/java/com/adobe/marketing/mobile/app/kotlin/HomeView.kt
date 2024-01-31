@@ -10,23 +10,25 @@
  */
 package com.adobe.marketing.mobile.app.kotlin
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.adobe.marketing.mobile.Edge
+import com.adobe.marketing.mobile.ExperienceEvent
 import com.adobe.marketing.mobile.app.kotlin.ui.theme.AepsdkcoreandroidTheme
+
 
 @Composable
 fun HomeView(navController: NavHostController) {
@@ -38,6 +40,11 @@ fun HomeView(navController: NavHostController) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Button(onClick = {
+            networkRetryTest()
+        }) {
+            Text(text = "NetworkRetryTest")
+        }
         Button(onClick = {
             navController.navigate(NavRoutes.CoreView.route)
         }) {
@@ -70,6 +77,22 @@ fun HomeView(navController: NavHostController) {
         }
     }
 
+}
+
+private fun networkRetryTest() {
+    val reviewXdmData: MutableMap<String, Any> = HashMap()
+    reviewXdmData["productSku"] = "demo123"
+    reviewXdmData["rating"] = 5
+    reviewXdmData["reviewText"] = "I love this demo!"
+    reviewXdmData["reviewerId"] = "Anonymous user"
+
+    val xdmData: MutableMap<String, Any> = HashMap()
+    xdmData["eventType"] = "MyFirstXDMExperienceEvent"
+
+    val experienceEvent = ExperienceEvent.Builder()
+        .setXdmSchema(xdmData)
+        .build()
+    Edge.sendEvent(experienceEvent, null)
 }
 
 @Preview(showBackground = true)

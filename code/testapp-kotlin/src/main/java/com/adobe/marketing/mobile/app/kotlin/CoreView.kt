@@ -98,7 +98,7 @@ fun CoreView(navController: NavHostController) {
                 Text(text = "setLogLevel(LogLevel.DEBUG)")
             }
             Button(onClick = {
-                MobileCore.log(LoggingMode.VERBOSE, "VERBOSE_TAG", "This is a VERBOSE message.")
+//                MobileCore.log(LoggingMode.VERBOSE, "VERBOSE_TAG", "This is a VERBOSE message.")
             }) {
                 Text(text = "log (VERBOSE)")
             }
