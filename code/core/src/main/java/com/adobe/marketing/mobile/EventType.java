@@ -43,6 +43,7 @@ public final class EventType {
     public static final String IDENTITY = "com.adobe.eventType.identity";
     public static final String LIFECYCLE = "com.adobe.eventType.lifecycle";
     public static final String LOCATION = "com.adobe.eventType.location";
+    public static final String NETWORK = "com.adobe.eventType.network";
     public static final String MEDIA = "com.adobe.eventType.media";
     public static final String MESSAGING = "com.adobe.eventType.messaging";
     public static final String PII = "com.adobe.eventType.pii";
