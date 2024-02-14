@@ -88,6 +88,7 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
     /**
      * Holds the work items that need to be processed by this dispatcher.
      */
+    //TODO: we can consider to use a thread-safe priority queue - PriorityBlockingQueue https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/PriorityBlockingQueue.html
     private val workQueue: Queue<T> = ConcurrentLinkedQueue()
 
     /**
