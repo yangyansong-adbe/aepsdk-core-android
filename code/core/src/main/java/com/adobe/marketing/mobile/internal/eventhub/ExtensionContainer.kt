@@ -122,7 +122,12 @@ internal class ExtensionContainer constructor(
     }
 
     val eventProcessor: SerialWorkDispatcher<Event> =
-        SerialWorkDispatcher(extensionClass.extensionTypeName, dispatchJob)
+        SerialWorkDispatcher(extensionClass.extensionTypeName, dispatchJob) {
+            it.forEach { event ->
+                if(event.isImmediateEvent)  return@SerialWorkDispatcher event
+            }
+            return@SerialWorkDispatcher null
+        }
 
     init {
 

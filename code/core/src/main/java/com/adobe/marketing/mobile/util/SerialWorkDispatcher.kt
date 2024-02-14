@@ -28,7 +28,7 @@ import java.util.concurrent.Future
  * that process work items with the queue that they are fetched from to allow sub-classes to be
  * agnostic of worker thread management.
  */
-open class SerialWorkDispatcher<T>(private val name: String, private val workHandler: WorkHandler<T>) {
+open class SerialWorkDispatcher<T>(private val name: String, private val workHandler: WorkHandler<T>, private val nextWorkItem: ((MutableIterator<T>) -> T?)? = null)  {
 
     private companion object {
         private const val LOG_TAG = "SerialWorkDispatcher"
@@ -308,8 +308,8 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
      *
      * @return the work item at the front (earliest queued) of the [workQueue], null if [workQueue] is empty
      */
-    private fun removeWorkItem(): T? {
-        return workQueue.poll()
+    private fun remove(workItem: T): Boolean {
+        return workQueue.remove(workItem)
     }
 
     /**
@@ -317,8 +317,12 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
      *
      * @return the work item at the front (earliest queued) of the [workQueue], null if [workQueue] is empty
      */
-    private fun peekWorkItem(): T? {
-        return workQueue.peek()
+    private fun pickWorkItem(): T? {
+        nextWorkItem?.let {
+            synchronized(activenessMutex) {
+                return nextWorkItem.invoke(workQueue.iterator())
+            }
+        }?: return workQueue.peek()
     }
 
     /**
@@ -378,7 +382,7 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
             // items in the queue to perform work on.
             while (!Thread.interrupted() && state == State.ACTIVE && canWork() && hasWork()) {
                 try {
-                    val workItem = peekWorkItem()
+                    val workItem = pickWorkItem()
                         // this return exists for syntactical correctness. We reached here after
                         // verifying that there is work via hasWork() and work cannot be removed
                         // outside of the WorkProcessor. So there should exist at least one work
@@ -387,7 +391,7 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
 
                     if (workHandler.doWork(workItem)) {
                         // Handler has successfully processed the work item, remove and try processing the next item
-                        removeWorkItem()
+                        remove(workItem)
                     } else {
                         // Work handler cannot process the work item, wait until next item.
                         // Do not auto resume here. Auto resuming will cause aggressive retries.

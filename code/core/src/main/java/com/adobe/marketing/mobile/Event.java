@@ -48,6 +48,12 @@ public final class Event {
     // Specifies the properties in the Event and its data that should be used in the hash for
     // EventHistory storage.
     private String[] mask;
+    //
+    private boolean isImmediateEvent = false;
+
+    public boolean isImmediateEvent() {
+        return isImmediateEvent;
+    }
 
     /** Event Builder */
     public static class Builder {
@@ -134,6 +140,12 @@ public final class Event {
                         e);
             }
 
+            return this;
+        }
+
+        public Builder isImmediateEvent() {
+            throwIfAlreadyBuilt();
+            event.isImmediateEvent = true;
             return this;
         }
 
