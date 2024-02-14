@@ -320,7 +320,8 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
     private fun pickWorkItem(): T? {
         nextWorkItem?.let {
             synchronized(activenessMutex) {
-                return nextWorkItem.invoke(workQueue.iterator())
+                val workItemWithPriority = nextWorkItem.invoke(workQueue.iterator())
+                return workItemWithPriority?: workQueue.peek()
             }
         }?: return workQueue.peek()
     }
