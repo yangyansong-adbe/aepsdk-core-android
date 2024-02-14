@@ -1,4 +1,4 @@
-package com.adobe.marketing.mobile.internal.resilience
+package com.adobe.marketing.mobile.util.resilience
 
 internal interface Executor <T>{
         suspend fun execute(block: () -> T?): T?

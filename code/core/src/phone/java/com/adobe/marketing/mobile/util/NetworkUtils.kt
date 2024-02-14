@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.internal.util
+package com.adobe.marketing.mobile.util
 
 import android.content.Context
 import android.net.ConnectivityManager

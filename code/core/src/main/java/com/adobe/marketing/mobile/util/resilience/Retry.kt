@@ -1,4 +1,4 @@
-package com.adobe.marketing.mobile.internal.resilience
+package com.adobe.marketing.mobile.util.resilience
 
 import kotlinx.coroutines.delay
 

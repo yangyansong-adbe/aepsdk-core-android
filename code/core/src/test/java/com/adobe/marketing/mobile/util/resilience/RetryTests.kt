@@ -1,8 +1,7 @@
-package com.adobe.marketing.mobile.internal.resilience
+package com.adobe.marketing.mobile.util.resilience
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking

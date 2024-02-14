@@ -1,4 +1,4 @@
-package com.adobe.marketing.mobile.internal.resilience
+package com.adobe.marketing.mobile.util.resilience
 
 internal inline fun retryConfig(config: RetryConfig.Builder<Any?>.() -> Unit): RetryConfig {
     return RetryConfig.Builder<Any?>().apply(config).build()

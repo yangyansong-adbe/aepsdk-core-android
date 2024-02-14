@@ -1,8 +1,8 @@
 package com.adobe.marketing.mobile.services
 
-import com.adobe.marketing.mobile.internal.resilience.Retry
-import com.adobe.marketing.mobile.internal.resilience.fixedWaitInterval
-import com.adobe.marketing.mobile.internal.resilience.retryConfig
+import com.adobe.marketing.mobile.util.resilience.Retry
+import com.adobe.marketing.mobile.util.resilience.fixedWaitInterval
+import com.adobe.marketing.mobile.util.resilience.retryConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -24,6 +24,8 @@ class PersistentHitQueue2(
 
     //TODO: should we use a global hit queue dispatcher??? It should be more efficient.
     private val hitDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+//    @OptIn(ExperimentalCoroutinesApi::class)
+//    private val hitDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher().limitedParallelism(1)
 
     //TODO: the return value is not used in extensions, we can create a new interface for the new function
     override fun queue(entity: DataEntity?): Boolean {

@@ -22,19 +22,14 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Bundle
-import android.util.Log
 import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.internal.util.isInternetAvailable
+import com.adobe.marketing.mobile.util.isInternetAvailable
 import com.adobe.marketing.mobile.services.AppContextService
 import com.adobe.marketing.mobile.services.AppState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -245,26 +240,31 @@ internal object App : AppContextService, Application.ActivityLifecycleCallbacks,
 
         val networkRequest = NetworkRequest.Builder()
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-            .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
+//            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+//            .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
             .build()
-        val connectivityManager = appContext.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
-        connectivityManager.requestNetwork(networkRequest, object : ConnectivityManager.NetworkCallback() {
-            override fun onAvailable(network: android.net.Network) {
-                super.onAvailable(network)
-                MobileCore.dispatchEvent(Event.Builder("NetworkUpdate",EventType.NETWORK, EventSource.STATE_CHANGED).setEventData(mapOf(
-                    "isOnline" to true
-                )).build())
+        try {
+            val connectivityManager = appContext.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+            connectivityManager.requestNetwork(networkRequest, object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: android.net.Network) {
+                    super.onAvailable(network)
+                    MobileCore.dispatchEvent(Event.Builder("NetworkUpdate",EventType.NETWORK, EventSource.STATE_CHANGED).setEventData(mapOf(
+                        "isOnline" to true
+                    )).build())
 
-            }
+                }
 
-            override fun onLost(network: android.net.Network) {
-                super.onLost(network)
-                MobileCore.dispatchEvent(Event.Builder("NetworkUpdate",EventType.NETWORK, EventSource.STATE_CHANGED).setEventData(mapOf(
-                    "isOnline" to false
-                )).build())
-            }
-        })
+                override fun onLost(network: android.net.Network) {
+                    super.onLost(network)
+                    MobileCore.dispatchEvent(Event.Builder("NetworkUpdate",EventType.NETWORK, EventSource.STATE_CHANGED).setEventData(mapOf(
+                        "isOnline" to false
+                    )).build())
+                }
+            })
+        }catch (e: Exception) {
+            //TODO: add an error log here.
+        }
+
     }
 
 }
