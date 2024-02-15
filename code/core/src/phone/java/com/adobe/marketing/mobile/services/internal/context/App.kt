@@ -258,9 +258,24 @@ internal object App : AppContextService, Application.ActivityLifecycleCallbacks,
                     super.onLost(network)
                     MobileCore.dispatchEvent(Event.Builder("NetworkUpdate",EventType.NETWORK, EventSource.STATE_CHANGED).setEventData(mapOf(
                         "isOnline" to false
-                    )).build())
+                    )).build())`
                 }
             })
+//            connectivityManager.registerNetworkCallback(networkRequest, object : ConnectivityManager.NetworkCallback() {
+//                override fun onAvailable(network: android.net.Network) {
+//                    super.onAvailable(network)
+//                    MobileCore.dispatchEvent(Event.Builder("NetworkUpdate",EventType.NETWORK, EventSource.STATE_CHANGED).setEventData(mapOf(
+//                        "isOnline" to true
+//                    )).build())
+//                }
+//
+//                override fun onLost(network: android.net.Network) {
+//                    super.onLost(network)
+//                    MobileCore.dispatchEvent(Event.Builder("NetworkUpdate",EventType.NETWORK, EventSource.STATE_CHANGED).setEventData(mapOf(
+//                        "isOnline" to false
+//                    )).build())
+//                }
+//            }
         }catch (e: Exception) {
             //TODO: add an error log here.
         }
