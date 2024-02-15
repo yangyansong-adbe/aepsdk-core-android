@@ -258,9 +258,11 @@ internal object App : AppContextService, Application.ActivityLifecycleCallbacks,
                     super.onLost(network)
                     MobileCore.dispatchEvent(Event.Builder("NetworkUpdate",EventType.NETWORK, EventSource.STATE_CHANGED).setEventData(mapOf(
                         "isOnline" to false
-                    )).build())`
+                    )).build())
                 }
             })
+            //TODO: https://developer.android.com/training/monitoring-device-state/connectivity-status-type#RegisterForUpdates
+            // requestNetwork vs registerNetworkCallback which one is a best fit for our use case?
 //            connectivityManager.registerNetworkCallback(networkRequest, object : ConnectivityManager.NetworkCallback() {
 //                override fun onAvailable(network: android.net.Network) {
 //                    super.onAvailable(network)
