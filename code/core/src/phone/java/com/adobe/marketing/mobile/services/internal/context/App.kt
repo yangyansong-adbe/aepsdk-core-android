@@ -254,6 +254,11 @@ internal object App : AppContextService, Application.ActivityLifecycleCallbacks,
 
                 }
 
+//                Called when a network disconnects or otherwise no longer satisfies this request or callback.
+//
+//                If the callback was registered with requestNetwork() or registerDefaultNetworkCallback(), it will only be invoked against the last network returned by onAvailable() when that network is lost and no other network satisfies the criteria of the request.
+//
+//                If the callback was registered with registerNetworkCallback() it will be called for each network which no longer satisfies the criteria of the callback.
                 override fun onLost(network: android.net.Network) {
                     super.onLost(network)
                     MobileCore.dispatchEvent(Event.Builder("NetworkUpdate",EventType.NETWORK, EventSource.STATE_CHANGED).setEventData(mapOf(
