@@ -131,6 +131,7 @@ public final class MobileCore {
 
         // Initialize event history
         EventHub.Companion.getShared().initializeEventHistory();
+        App.INSTANCE.monitorNetworkUpdate();
     }
 
     /**

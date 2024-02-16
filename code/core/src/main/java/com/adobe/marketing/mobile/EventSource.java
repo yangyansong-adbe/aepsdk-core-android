@@ -25,6 +25,7 @@ public final class EventSource {
 
     public static final String NONE = "com.adobe.eventSource.none";
     public static final String OS = "com.adobe.eventSource.os";
+    public static final String STATE_CHANGED = "com.adobe.eventSource.stateChanged";
     public static final String REQUEST_CONTENT = "com.adobe.eventSource.requestContent";
     public static final String REQUEST_IDENTITY = "com.adobe.eventSource.requestIdentity";
     public static final String REQUEST_PROFILE = "com.adobe.eventSource.requestProfile";

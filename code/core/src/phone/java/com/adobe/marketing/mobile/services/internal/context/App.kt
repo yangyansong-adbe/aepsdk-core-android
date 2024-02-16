@@ -16,9 +16,18 @@ import android.app.Application
 import android.content.ComponentCallbacks2
 import android.content.ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN
 import android.content.Context
+import android.content.Context.CONNECTIVITY_SERVICE
 import android.content.res.Configuration
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.os.Bundle
 import androidx.annotation.VisibleForTesting
+import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventSource
+import com.adobe.marketing.mobile.EventType
+import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.util.isInternetAvailable
 import com.adobe.marketing.mobile.services.AppContextService
 import com.adobe.marketing.mobile.services.AppState
 import java.lang.ref.WeakReference
@@ -215,4 +224,69 @@ internal object App : AppContextService, Application.ActivityLifecycleCallbacks,
         application.unregisterActivityLifecycleCallbacks(this)
         application.unregisterComponentCallbacks(this)
     }
+
+    fun monitorNetworkUpdate() {
+        val appContext = application?.get() ?: return
+
+        if (isInternetAvailable(appContext)) {
+            MobileCore.dispatchEvent(Event.Builder("NetworkUpdate",EventType.NETWORK, EventSource.STATE_CHANGED).setEventData(mapOf(
+                "isOnline" to true
+            )).build())
+        } else {
+            MobileCore.dispatchEvent(Event.Builder("NetworkUpdate",EventType.NETWORK, EventSource.STATE_CHANGED).setEventData(mapOf(
+                "isOnline" to false
+            )).build())
+        }
+
+        val networkRequest = NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+//            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+//            .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
+            .build()
+        try {
+            val connectivityManager = appContext.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+            connectivityManager.requestNetwork(networkRequest, object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: android.net.Network) {
+                    super.onAvailable(network)
+                    MobileCore.dispatchEvent(Event.Builder("NetworkUpdate",EventType.NETWORK, EventSource.STATE_CHANGED).setEventData(mapOf(
+                        "isOnline" to true
+                    )).build())
+
+                }
+
+//                Called when a network disconnects or otherwise no longer satisfies this request or callback.
+//
+//                If the callback was registered with requestNetwork() or registerDefaultNetworkCallback(), it will only be invoked against the last network returned by onAvailable() when that network is lost and no other network satisfies the criteria of the request.
+//
+//                If the callback was registered with registerNetworkCallback() it will be called for each network which no longer satisfies the criteria of the callback.
+                override fun onLost(network: android.net.Network) {
+                    super.onLost(network)
+                    MobileCore.dispatchEvent(Event.Builder("NetworkUpdate",EventType.NETWORK, EventSource.STATE_CHANGED).setEventData(mapOf(
+                        "isOnline" to false
+                    )).build())
+                }
+            })
+            //TODO: https://developer.android.com/training/monitoring-device-state/connectivity-status-type#RegisterForUpdates
+            // requestNetwork vs registerNetworkCallback which one is a best fit for our use case?
+//            connectivityManager.registerNetworkCallback(networkRequest, object : ConnectivityManager.NetworkCallback() {
+//                override fun onAvailable(network: android.net.Network) {
+//                    super.onAvailable(network)
+//                    MobileCore.dispatchEvent(Event.Builder("NetworkUpdate",EventType.NETWORK, EventSource.STATE_CHANGED).setEventData(mapOf(
+//                        "isOnline" to true
+//                    )).build())
+//                }
+//
+//                override fun onLost(network: android.net.Network) {
+//                    super.onLost(network)
+//                    MobileCore.dispatchEvent(Event.Builder("NetworkUpdate",EventType.NETWORK, EventSource.STATE_CHANGED).setEventData(mapOf(
+//                        "isOnline" to false
+//                    )).build())
+//                }
+//            }
+        }catch (e: Exception) {
+            //TODO: add an error log here.
+        }
+
+    }
+
 }

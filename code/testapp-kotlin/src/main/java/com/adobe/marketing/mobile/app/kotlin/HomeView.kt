@@ -28,6 +28,10 @@ import androidx.navigation.compose.rememberNavController
 import com.adobe.marketing.mobile.Edge
 import com.adobe.marketing.mobile.ExperienceEvent
 import com.adobe.marketing.mobile.app.kotlin.ui.theme.AepsdkcoreandroidTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 @Composable
