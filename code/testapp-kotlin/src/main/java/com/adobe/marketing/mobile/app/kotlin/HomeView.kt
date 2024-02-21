@@ -28,8 +28,13 @@ import androidx.navigation.compose.rememberNavController
 import com.adobe.marketing.mobile.Edge
 import com.adobe.marketing.mobile.ExperienceEvent
 import com.adobe.marketing.mobile.app.kotlin.ui.theme.AepsdkcoreandroidTheme
+import com.adobe.marketing.mobile.internal.util.isInternetAvailable
+import com.adobe.marketing.mobile.services.ServiceProvider
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTimedValue
 
 
+@OptIn(ExperimentalTime::class)
 @Composable
 fun HomeView(navController: NavHostController) {
     Column(
@@ -40,6 +45,26 @@ fun HomeView(navController: NavHostController) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Button(onClick = {
+            val (result, duration) = measureTimedValue {
+                (1..1000).forEach {
+                    val context = ServiceProvider.getInstance().appContextService
+                        .applicationContext ?: throw Error("Context is null")
+                    if (isInternetAvailable(context)){
+                        Log.e("HomeView", "Internet is available")
+                    }else{
+                        Log.e("HomeView", "Internet is not available")
+                    }
+                }
+                // eg: productRepository.getBaseProducts(batchOfProductNos)
+            }
+            Log.e("Performance Test","operation took $duration")
+
+
+
+        }) {
+            Text(text = "Test")
+        }
         Button(onClick = {
             networkRetryTest()
         }) {
