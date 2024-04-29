@@ -19,7 +19,7 @@ aepLibrary {
         mavenRepoName = signalMavenRepoName
         mavenRepoDescription = signalMavenRepoDescription
         gitRepoName = "aepsdk-core-android"
-        addCoreDependency(coreExtensionVersion)
+        addCoreDependency("$coreExtensionVersion")
     }
 }
 
