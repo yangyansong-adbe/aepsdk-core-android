@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.rulesengine;
 
+import com.adobe.marketing.mobile.services.Log;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +31,8 @@ public class RulesEngine<T extends Rule> {
 
     public List<T> evaluate(final TokenFinder tokenFinder) {
         synchronized (rulesEngineMutex) {
+            // compute time used for evaluation
+            long startTime = System.currentTimeMillis();
             final Context context = new Context(tokenFinder, evaluator, transformer);
             List<T> triggerRules = new ArrayList<>();
 
@@ -39,6 +42,12 @@ public class RulesEngine<T extends Rule> {
                     triggerRules.add(rule);
                 }
             }
+            long endTime = System.currentTimeMillis();
+            long timeElapsed = endTime - startTime;
+            Log.debug(
+                    "RulesEngine",
+                    "RulesEngine<T extends Rule>",
+                    "timeElapsed=" + timeElapsed + " rules=" + rules.size());
             return triggerRules;
         }
     }
