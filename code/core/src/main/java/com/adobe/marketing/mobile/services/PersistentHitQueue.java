@@ -40,7 +40,7 @@ public class PersistentHitQueue extends HitQueuing {
      */
     public PersistentHitQueue(final DataQueue queue, final HitProcessing processor)
             throws IllegalArgumentException {
-        this(queue, processor, Executors.newSingleThreadScheduledExecutor(createSingleThreadFactory("PersistentHitQueue")));
+        this(queue, processor, Executors.newSingleThreadScheduledExecutor(createSingleThreadFactory("HitQueue")));
     }
 
     @VisibleForTesting

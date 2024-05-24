@@ -9,8 +9,16 @@ class ThreadUtils {
 private val count = AtomicInteger(0)
 internal fun createSingleThreadFactory(name: String): ThreadFactory {
     val number = count.incrementAndGet()
-
-    return ThreadFactoryBuilder().setNameFormat("a-$number-${name.takeLast(8)}").build()
+    if (name.length > 9){
+        if (name.startsWith("com.adobe.marketing.mobile.")){
+            name.split(".").last().let {
+                val extensionName = it.removeSuffix("Extension")
+                return ThreadFactoryBuilder().setNameFormat("a-$number-$extensionName").build()
+            }
+        }
+        return ThreadFactoryBuilder().setNameFormat("a-$number-${name.takeLast(8)}").build()
+    }
+    return ThreadFactoryBuilder().setNameFormat("a-$number-$name").build()
 }
 internal fun createMultipleThreadFactory(name: String): ThreadFactory {
     return ThreadFactoryBuilder().setNameFormat("a-$name-%d").build()

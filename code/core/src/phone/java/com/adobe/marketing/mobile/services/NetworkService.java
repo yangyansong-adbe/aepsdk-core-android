@@ -49,7 +49,7 @@ class NetworkService implements Networking {
                         THREAD_POOL_KEEP_ALIVE_TIME,
                         TimeUnit.SECONDS,
                         new SynchronousQueue<Runnable>(),
-                    createMultipleThreadFactory("NS"));
+                    createMultipleThreadFactory("NetworkService"));
     }
 
     @VisibleForTesting
