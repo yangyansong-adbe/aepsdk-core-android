@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile.services;
 
+import static com.adobe.marketing.mobile.internal.util.ThreadUtilsKt.createMultipleThreadFactory;
+
 import android.net.ConnectivityManager;
 import androidx.annotation.VisibleForTesting;
 import com.adobe.marketing.mobile.internal.util.NetworkUtils;
@@ -46,7 +48,8 @@ class NetworkService implements Networking {
                         THREAD_POOL_MAXIMUM_SIZE,
                         THREAD_POOL_KEEP_ALIVE_TIME,
                         TimeUnit.SECONDS,
-                        new SynchronousQueue<Runnable>());
+                        new SynchronousQueue<Runnable>(),
+                    createMultipleThreadFactory("NS"));
     }
 
     @VisibleForTesting
