@@ -11,6 +11,8 @@
 package com.adobe.marketing.mobile.core.testapp
 
 import android.app.Application
+import android.content.Intent
+import android.content.IntentFilter
 import android.util.Log
 import androidx.core.os.UserManagerCompat
 import com.adobe.marketing.mobile.Identity
@@ -19,6 +21,7 @@ import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.Signal
 import com.adobe.marketing.mobile.core.testapp.extension.PerfExtension
+
 
 class MyApp : Application() {
 
@@ -32,6 +35,11 @@ class MyApp : Application() {
         // MobileCore.configureWithAppID("YOUR_APP_ID")
         val extensions = listOf(Identity.EXTENSION, Signal.EXTENSION, Lifecycle.EXTENSION, PerfExtension::class.java)
         MobileCore.registerExtensions(extensions) {}
+
+        val intentFilter = IntentFilter(Intent.ACTION_SCREEN_ON)
+        intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
+        val mReceiver = ScreenStateReceiver()
+        registerReceiver(mReceiver, intentFilter)
     }
 
 }
