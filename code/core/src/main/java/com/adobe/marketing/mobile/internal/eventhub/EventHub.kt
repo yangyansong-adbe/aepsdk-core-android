@@ -68,7 +68,7 @@ internal class EventHub {
     }
 
     private val _eventsFlow = MutableSharedFlow<Event>()
-    val events = _eventsFlow.asSharedFlow().buffer(1000)
+    val events = _eventsFlow.asSharedFlow()
 
     private val eventQueue = mutableListOf<Event>()
 
@@ -874,44 +874,4 @@ private fun <T> MutableCollection<T>.filterRemove(predicate: (T) -> Boolean): Mu
         }
     }
     return ret
-}
-
-@ExperimentalCoroutinesApi
-@ObsoleteCoroutinesApi
-fun Flow<Event>.readyForEvent(predicate: suspend (Event) -> Boolean): Flow<Event> {
-
-    return flow {
-        coroutineScope {
-            val events = ArrayDeque<Event>()
-            try {
-                val upstreamValues = produce {
-                    collect {
-                        send(it)
-                    }
-                }
-
-                while (isActive) {
-
-                    select<Unit> {
-                        upstreamValues.onReceive {
-                            events.add(it)
-                            while (events.isNotEmpty()) {
-                                val oldestEvent = events.first()
-                                if (predicate(oldestEvent)) {
-                                    emit(events.removeFirst())
-                                } else {
-                                    break
-                                }
-                            }
-                        }
-                    }
-                }
-            } catch (e: ClosedReceiveChannelException) {
-                // drain remaining events
-//                if (events.isNotEmpty()) emit(events.toList())
-            } finally {
-//                tickerChannel.cancel()
-            }
-        }
-    }
 }

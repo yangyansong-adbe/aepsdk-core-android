@@ -27,10 +27,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.buffer
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -115,8 +113,8 @@ internal class ExtensionContainer @OptIn(ExperimentalCoroutinesApi::class) const
                 // Notify that the extension is registered
                 extension.onExtensionRegistered()
 
-                eventProcessing = EventHub.shared.events.readyForEvent {
-                    return@readyForEvent shouldProcessEvents && extension.readyForEvent(it)
+                eventProcessing = EventHub.shared.events.buffer(1,BufferOverflow.DROP_LATEST).pauseIf {
+                    shouldProcessEvents && extension.readyForEvent(it)
                 }.onEach { event ->
                     eventListeners.forEach {
                         if (it.shouldNotify(event)) {
