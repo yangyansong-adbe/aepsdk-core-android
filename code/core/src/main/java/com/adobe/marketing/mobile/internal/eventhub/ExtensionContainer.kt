@@ -22,13 +22,28 @@ import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.services.Log
-import com.adobe.marketing.mobile.util.SerialWorkDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.util.concurrent.ConcurrentLinkedQueue
 
-internal class ExtensionContainer constructor(
+@OptIn(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
+internal class ExtensionContainer @OptIn(ExperimentalCoroutinesApi::class) constructor(
     private val extensionClass: Class<out Extension>,
+//    override val extensionScope: CoroutineScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1)),
+    private val extensionScope: CoroutineScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1)),
     callback: (EventHubError) -> Unit
-) : ExtensionApi() {
+) : ExtensionApi {
 
     companion object {
         const val LOG_TAG = "ExtensionContainer"
@@ -51,88 +66,77 @@ internal class ExtensionContainer constructor(
 
     var extension: Extension? = null
         private set
+    private var eventProcessing: Job? = null
+
+    @Volatile
+    private var shouldProcessEvents = true
+    // TODO: change to use stateFlow later
 
     private var sharedStateManagers: Map<SharedStateType, SharedStateManager>? = null
     private val eventListeners: ConcurrentLinkedQueue<ExtensionListenerContainer> =
         ConcurrentLinkedQueue()
 
-    /**
-     * Implementation of [SerialWorkDispatcher.WorkHandler] that is responsible for dispatching
-     * an [Event] "e". Dispatch is regarded complete when [SerialWorkDispatcher.WorkHandler.doWork] finishes for "e".
-     */
-    private val dispatchJob: SerialWorkDispatcher.WorkHandler<Event> =
-        SerialWorkDispatcher.WorkHandler { event ->
-            if (extension?.readyForEvent(event) != true) {
-                return@WorkHandler false
-            }
-
-            eventListeners.forEach {
-                if (it.shouldNotify(event)) {
-                    it.notify(event)
-                }
-            }
-
-            lastProcessedEvent = event
-            return@WorkHandler true
-        }
-
-    private val initJob = Runnable {
-        val extension = extensionClass.initWith(this)
-        if (extension == null) {
-            callback(EventHubError.ExtensionInitializationFailure)
-            return@Runnable
-        }
-
-        val extensionName = extension.extensionName
-        if (extensionName.isNullOrBlank()) {
-            callback(EventHubError.InvalidExtensionName)
-            return@Runnable
-        }
-
-        this.extension = extension
-        sharedStateName = extensionName
-        friendlyName = extension.extensionFriendlyName
-        version = extension.extensionVersion
-        metadata = extension.extensionMetadata
-
-        sharedStateManagers = mapOf(
-            SharedStateType.XDM to SharedStateManager(extensionName),
-            SharedStateType.STANDARD to SharedStateManager(extensionName)
-        )
-
-        Log.debug(
-            CoreConstants.LOG_TAG,
-            getTag(),
-            "Extension registered"
-        )
-
-        callback(EventHubError.None)
-
-        // Notify that the extension is registered
-        extension.onExtensionRegistered()
-    }
-
-    private val teardownJob = Runnable {
-        extension?.onExtensionUnregistered()
-        Log.debug(
-            CoreConstants.LOG_TAG,
-            getTag(),
-            "Extension unregistered"
-        )
-    }
-
-    val eventProcessor: SerialWorkDispatcher<Event> =
-        SerialWorkDispatcher(extensionClass.extensionTypeName, dispatchJob)
+//    private val teardownJob = Runnable {
+//        extension?.onExtensionUnregistered()
+//        Log.debug(
+//            CoreConstants.LOG_TAG,
+//            getTag(),
+//            "Extension unregistered"
+//        )
+//    }
 
     init {
+        val container = this
+        val extension = extensionClass.initWith(container)
+        extension?.let { extension ->
+            val extensionName = extension.extensionName
+            if (extensionName.isNullOrBlank()) {
+                callback(EventHubError.InvalidExtensionName)
+            }else{
+                container.extension = extension
+                sharedStateName = extensionName
+                friendlyName = extension.extensionFriendlyName
+                version = extension.extensionVersion
+                metadata = extension.extensionMetadata
 
-        eventProcessor.setInitialJob(initJob)
-        eventProcessor.setFinalJob(teardownJob)
-        eventProcessor.start()
+                sharedStateManagers = mapOf(
+                    SharedStateType.XDM to SharedStateManager(extensionName),
+                    SharedStateType.STANDARD to SharedStateManager(extensionName)
+                )
+
+                Log.debug(
+                    CoreConstants.LOG_TAG,
+                    getTag(),
+                    "Extension registered"
+                )
+
+                callback(EventHubError.None)
+
+                // Notify that the extension is registered
+                extension.onExtensionRegistered()
+
+                eventProcessing = EventHub.shared.events.readyForEvent {
+                    return@readyForEvent shouldProcessEvents && extension.readyForEvent(it)
+                }.onEach { event ->
+                    eventListeners.forEach {
+                        if (it.shouldNotify(event)) {
+                            it.notify(event)
+                        }
+                        lastProcessedEvent = event
+                    }
+                }.launchIn(extensionScope)
+
+//        eventProcessor.setFinalJob(teardownJob)
+//        eventProcessor.start()
+            }
+        } ?: run {
+            callback(EventHubError.ExtensionInitializationFailure)
+        }
+
     }
 
     fun shutdown() {
-        eventProcessor.shutdown()
+        eventProcessing?.cancel()
     }
 
     /**
@@ -166,15 +170,15 @@ internal class ExtensionContainer constructor(
     }
 
     override fun startEvents() {
-        eventProcessor.resume()
+        shouldProcessEvents = true
     }
 
     override fun stopEvents() {
-        eventProcessor.pause()
+        shouldProcessEvents = false
     }
 
     override fun createSharedState(
-        state: MutableMap<String, Any?>,
+        state: Map<String, Any?>,
         event: Event?
     ) {
         val sharedStateName = this.sharedStateName ?: run {
@@ -185,13 +189,15 @@ internal class ExtensionContainer constructor(
             )
             return
         }
+        extensionScope.launch {
+            EventHub.shared.createSharedState(
+                SharedStateType.STANDARD,
+                sharedStateName,
+                state,
+                event
+            )
+        }
 
-        EventHub.shared.createSharedState(
-            SharedStateType.STANDARD,
-            sharedStateName,
-            state,
-            event
-        )
     }
 
     override fun createPendingSharedState(
@@ -205,12 +211,13 @@ internal class ExtensionContainer constructor(
             )
             return null
         }
-
-        return EventHub.shared.createPendingSharedState(
-            SharedStateType.STANDARD,
-            sharedStateName,
-            event
-        )
+        return runBlocking {
+            EventHub.shared.createPendingSharedState(
+                SharedStateType.STANDARD,
+                sharedStateName,
+                event
+            )
+        }
     }
 
     override fun getSharedState(
@@ -219,17 +226,19 @@ internal class ExtensionContainer constructor(
         barrier: Boolean,
         resolution: SharedStateResolution
     ): SharedStateResult? {
-        return EventHub.shared.getSharedState(
-            SharedStateType.STANDARD,
-            extensionName,
-            event,
-            barrier,
-            resolution
-        )
+        return runBlocking {
+            EventHub.shared.getSharedState(
+                SharedStateType.STANDARD,
+                extensionName,
+                event,
+                barrier,
+                resolution
+            )
+        }
     }
 
     override fun createXDMSharedState(
-        state: MutableMap<String, Any?>,
+        state: Map<String, Any?>,
         event: Event?
     ) {
         val sharedStateName = this.sharedStateName ?: run {
@@ -240,8 +249,10 @@ internal class ExtensionContainer constructor(
             )
             return
         }
+        extensionScope.launch {
+            EventHub.shared.createSharedState(SharedStateType.XDM, sharedStateName, state, event)
+        }
 
-        EventHub.shared.createSharedState(SharedStateType.XDM, sharedStateName, state, event)
     }
 
     override fun createPendingXDMSharedState(
@@ -256,7 +267,13 @@ internal class ExtensionContainer constructor(
             return null
         }
 
-        return EventHub.shared.createPendingSharedState(SharedStateType.XDM, sharedStateName, event)
+        return runBlocking {
+            EventHub.shared.createPendingSharedState(
+                SharedStateType.XDM,
+                sharedStateName,
+                event
+            )
+        }
     }
 
     override fun getXDMSharedState(
@@ -265,13 +282,15 @@ internal class ExtensionContainer constructor(
         barrier: Boolean,
         resolution: SharedStateResolution
     ): SharedStateResult? {
-        return EventHub.shared.getSharedState(
-            SharedStateType.XDM,
-            extensionName,
-            event,
-            barrier,
-            resolution
-        )
+        return runBlocking {
+            EventHub.shared.getSharedState(
+                SharedStateType.XDM,
+                extensionName,
+                event,
+                barrier,
+                resolution
+            )
+        }
     }
 
     override fun unregisterExtension() {
@@ -279,7 +298,7 @@ internal class ExtensionContainer constructor(
     }
 
     override fun getHistoricalEvents(
-        eventHistoryRequests: Array<out EventHistoryRequest>,
+        eventHistoryRequests: Array<EventHistoryRequest>,
         enforceOrder: Boolean,
         handler: EventHistoryResultHandler<Int>
     ) {
