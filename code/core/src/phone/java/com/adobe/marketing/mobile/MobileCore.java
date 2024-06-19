@@ -42,8 +42,7 @@ public final class MobileCore {
 
   static AtomicBoolean sdkInitializedWithContext = new AtomicBoolean(false);
 
-  private MobileCore() {
-  }
+  private MobileCore() {}
 
   // ========================================================
   // MobileCore methods
@@ -54,8 +53,7 @@ public final class MobileCore {
    *
    * @return The version string
    */
-  @NonNull
-  public static String extensionVersion() {
+  @NonNull public static String extensionVersion() {
     WrapperType wrapperType = EventHub.Companion.getShared().getWrapperType();
     if (wrapperType == WrapperType.NONE) {
       return EventHubConstants.VERSION_NUMBER;
@@ -145,10 +143,9 @@ public final class MobileCore {
    * <p>NOTE: {@link #setApplication(Application)} must be called before calling this method.
    *
    * @return the current {@code Application}, or null if no {@code Application} was set or the
-   * {@code Application} process was destroyed.
+   *     {@code Application} process was destroyed.
    */
-  @Nullable
-  public static Application getApplication() {
+  @Nullable public static Application getApplication() {
     return ServiceProvider.getInstance().getAppContextService().getApplication();
   }
 
@@ -171,8 +168,7 @@ public final class MobileCore {
    *
    * @return the set {@code LoggingMode}
    */
-  @NonNull
-  public static LoggingMode getLogLevel() {
+  @NonNull public static LoggingMode getLogLevel() {
     return com.adobe.marketing.mobile.services.Log.getLogLevel();
   }
 
@@ -182,10 +178,10 @@ public final class MobileCore {
    * <p>This method needs to be called after {@link MobileCore#setApplication(Application)} is
    * called.
    *
-   * @param extensions         List of extension classes whose parent is {@link Extension}. It
-   *                           should not be null.
+   * @param extensions List of extension classes whose parent is {@link Extension}. It should not
+   *     be null.
    * @param completionCallback an optional {@link AdobeCallback} invoked after registrations are
-   *                           completed
+   *     completed
    */
   public static void registerExtensions(
       @NonNull final List<Class<? extends Extension>> extensions,
@@ -232,10 +228,10 @@ public final class MobileCore {
   /**
    * Registers an event listener for the provided event type and source.
    *
-   * @param eventType   the event type as a valid string. It should not be null or empty.
+   * @param eventType the event type as a valid string. It should not be null or empty.
    * @param eventSource the event source as a valid string. It should not be null or empty.
-   * @param callback    the callback whose {@link AdobeCallback#call(Object)} will be called when
-   *                    the event is heard. It should not be null.
+   * @param callback the callback whose {@link AdobeCallback#call(Object)} will be called when the
+   *     event is heard. It should not be null.
    */
   public static void registerEventListener(
       @NonNull final String eventType,
@@ -262,8 +258,8 @@ public final class MobileCore {
   }
 
   /**
-   * This method will dispatch the provided {@code Event} to dispatch an event for other extensions
-   * or the internal SDK to consume.
+   * This method will dispatch the provided {@code Event} to dispatch an event for other
+   * extensions or the internal SDK to consume.
    *
    * @param event the {@link Event} to be dispatched. It should not be null
    */
@@ -281,15 +277,14 @@ public final class MobileCore {
    * event is expected in return.
    *
    * <p>Passes an {@link AdobeError#UNEXPECTED_ERROR} to {@link
-   * AdobeCallbackWithError#fail(AdobeError)} if {@code event} is null. Passes an
-   * {@link AdobeError#CALLBACK_TIMEOUT} to {@link AdobeCallbackWithError#fail(AdobeError)} if
-   * {@code event} processing timeout occurs.
+   * AdobeCallbackWithError#fail(AdobeError)} if {@code event} is null. Passes an {@link
+   * AdobeError#CALLBACK_TIMEOUT} to {@link AdobeCallbackWithError#fail(AdobeError)} if {@code
+   * event} processing timeout occurs.
    *
-   * @param event            the {@link Event} to be dispatched, used as a trigger. It should not be
-   *                         null.
-   * @param timeoutMS        the timeout specified in milliseconds.
-   * @param responseCallback the callback whose {@link AdobeCallbackWithError#call(Object)} will be
-   *                         called when the response event is heard. It should not be null.
+   * @param event the {@link Event} to be dispatched, used as a trigger. It should not be null.
+   * @param timeoutMS the timeout specified in milliseconds.
+   * @param responseCallback the callback whose {@link AdobeCallbackWithError#call(Object)} will
+   *     be called when the response event is heard. It should not be null.
    */
   public static void dispatchEventWithResponseCallback(
       @NonNull final Event event,
@@ -435,7 +430,7 @@ public final class MobileCore {
    * be extracted from the Intent extras.
    *
    * @param messageInfo {@code Map<String, Object>} containing message tracking information. It
-   *                    should not be null or empty.
+   *     should not be null or empty.
    */
   public static void collectMessageInfo(@NonNull final Map<String, Object> messageInfo) {
     if (messageInfo == null || messageInfo.isEmpty()) {
@@ -503,8 +498,8 @@ public final class MobileCore {
    * If the remote file is updated after the first download, the updated file is downloaded and
    * replaces the cached file.
    *
-   * @param appId A unique identifier assigned to the app instance by Adobe Launch. It should not be
-   *              null.
+   * @param appId A unique identifier assigned to the app instance by Adobe Launch. It should not
+   *     be null.
    */
   public static void configureWithAppID(@NonNull final String appId) {
     if (appId == null) {
@@ -529,8 +524,8 @@ public final class MobileCore {
 
   /**
    * Load configuration from the file in the assets folder. SDK automatically reads config from
-   * `ADBMobileConfig.json` file if it exists in the assets folder. Use this API only if the config
-   * needs to be read from a different file.
+   * `ADBMobileConfig.json` file if it exists in the assets folder. Use this API only if the
+   * config needs to be read from a different file.
    *
    * <p>On application relaunch, the configuration from the file at {@code filepath} is not
    * preserved and this method must be called again if desired.
@@ -540,9 +535,9 @@ public final class MobileCore {
    *
    * <p>Calls to this API will replace any existing SDK configuration except those set using
    * {@link #updateConfiguration(Map)} or {@link #setPrivacyStatus(MobilePrivacyStatus)}.
-   * Configuration updates made using {@link #updateConfiguration(Map)} and
-   * {@link #setPrivacyStatus(MobilePrivacyStatus)} are always applied on top of configuration
-   * changes made using this API.
+   * Configuration updates made using {@link #updateConfiguration(Map)} and {@link
+   * #setPrivacyStatus(MobilePrivacyStatus)} are always applied on top of configuration changes
+   * made using this API.
    *
    * @param fileName the name of the configure file in the assets folder. It should not be null.
    */
@@ -575,17 +570,17 @@ public final class MobileCore {
    * Load configuration from local file.
    *
    * <p>Configure the SDK by reading a local file containing the JSON configuration. On
-   * application relaunch, the configuration from the file at {@code filepath} is not preserved and
-   * this method must be called again if desired.
+   * application relaunch, the configuration from the file at {@code filepath} is not preserved
+   * and this method must be called again if desired.
    *
    * <p>On failure to read the file or parse the JSON contents, the existing configuration remains
    * unchanged.
    *
    * <p>Calls to this API will replace any existing SDK configuration except those set using
    * {@link #updateConfiguration(Map)} or {@link #setPrivacyStatus(MobilePrivacyStatus)}.
-   * Configuration updates made using {@link #updateConfiguration(Map)} and
-   * {@link #setPrivacyStatus(MobilePrivacyStatus)} are always applied on top of configuration
-   * changes made using this API.
+   * Configuration updates made using {@link #updateConfiguration(Map)} and {@link
+   * #setPrivacyStatus(MobilePrivacyStatus)} are always applied on top of configuration changes
+   * made using this API.
    *
    * @param filePath absolute path to a local configuration file. It should not be null.
    */
@@ -618,9 +613,9 @@ public final class MobileCore {
    * Update specific configuration parameters.
    *
    * <p>Update the current SDK configuration with specific key/value pairs. Keys not found in the
-   * current configuration are added. Configuration updates are preserved and applied over existing
-   * or new configurations set by calling {@link #configureWithAppID(String)} or
-   * {@link #configureWithFileInPath(String)}, even across application restarts.
+   * current configuration are added. Configuration updates are preserved and applied over
+   * existing or new configurations set by calling {@link #configureWithAppID(String)} or {@link
+   * #configureWithFileInPath(String)}, even across application restarts.
    *
    * <p>Using {@code null} values is allowed and effectively removes the configuration parameter
    * from the current configuration.
@@ -653,10 +648,10 @@ public final class MobileCore {
   }
 
   /**
-   * Clear the changes made by {@link #updateConfiguration(Map)} and
-   * {@link #setPrivacyStatus(MobilePrivacyStatus)} to the initial configuration provided either by
-   * {@link #configureWithAppID(String)} or {@link #configureWithFileInPath(String)} or
-   * {@link #configureWithFileInAssets(String)}
+   * Clear the changes made by {@link #updateConfiguration(Map)} and {@link
+   * #setPrivacyStatus(MobilePrivacyStatus)} to the initial configuration provided either by
+   * {@link #configureWithAppID(String)} or {@link #configureWithFileInPath(String)} or {@link
+   * #configureWithFileInAssets(String)}
    */
   public static void clearUpdatedConfiguration() {
     Map<String, Object> eventData = new HashMap<>();
@@ -679,8 +674,8 @@ public final class MobileCore {
    * Set the Adobe Mobile Privacy status.
    *
    * <p>Sets the {@link MobilePrivacyStatus} for this SDK. The set privacy status is preserved and
-   * applied over any new configuration changes from calls to {@link #configureWithAppID(String)} or
-   * {@link #configureWithFileInPath(String)}, even across application restarts.
+   * applied over any new configuration changes from calls to {@link #configureWithAppID(String)}
+   * or {@link #configureWithFileInPath(String)}, even across application restarts.
    *
    * @param privacyStatus {@link MobilePrivacyStatus} to be set to the SDK
    * @see MobilePrivacyStatus
@@ -708,7 +703,7 @@ public final class MobileCore {
    * the given {@link AdobeCallback#call(Object)} function.
    *
    * @param callback {@link AdobeCallback} instance which is invoked with the configured privacy
-   *                 status as a parameter. It should not be null.
+   *     status as a parameter. It should not be null.
    * @see AdobeCallback
    * @see MobilePrivacyStatus
    */
@@ -766,7 +761,7 @@ public final class MobileCore {
    * Retrieve all identities stored by/known to the SDK in a JSON {@code String} format.
    *
    * @param callback {@link AdobeCallback} instance which is invoked with all the known identifier
-   *                 in JSON {@link String} format. It should not be null.
+   *     in JSON {@link String} format. It should not be null.
    * @see AdobeCallback
    */
   public static void getSdkIdentities(@NonNull final AdobeCallback<String> callback) {
@@ -836,9 +831,9 @@ public final class MobileCore {
    * running, then calling this method does nothing.
    *
    * <p>Additional context data may be passed when calling this method. Lifecycle data and any
-   * additional data are sent as context data parameters to Analytics, to Target as mbox parameters,
-   * and for Audience Manager they are sent as customer variables. Any additional data is also used
-   * by the Rules Engine when processing rules.
+   * additional data are sent as context data parameters to Analytics, to Target as mbox
+   * parameters, and for Audience Manager they are sent as customer variables. Any additional data
+   * is also used by the Rules Engine when processing rules.
    *
    * <p>This method should be called from the Activity onResume method.
    *
@@ -867,13 +862,13 @@ public final class MobileCore {
    * Pause/stop lifecycle session.
    *
    * <p>Pauses the current lifecycle session. Calling pause on an already paused session updates
-   * the paused timestamp, having the effect of resetting the session timeout timer. If no lifecycle
-   * session is running, then calling this method does nothing.
+   * the paused timestamp, having the effect of resetting the session timeout timer. If no
+   * lifecycle session is running, then calling this method does nothing.
    *
    * <p>A paused session is resumed if {@link #lifecycleStart(Map)} is called before the session
-   * timeout. After the session timeout, a paused session is closed and calling
-   * {@link #lifecycleStart(Map)} will create a new session. The session timeout is defined by the
-   * {@code lifecycle.sessionTimeout} configuration parameter. If not defined, the default session
+   * timeout. After the session timeout, a paused session is closed and calling {@link
+   * #lifecycleStart(Map)} will create a new session. The session timeout is defined by the {@code
+   * lifecycle.sessionTimeout} configuration parameter. If not defined, the default session
    * timeout is five minutes.
    *
    * <p>This method should be called from the Activity onPause method.
@@ -902,12 +897,12 @@ public final class MobileCore {
    * This method dispatches an Analytics track {@code action} event
    *
    * <p>Actions represent events that occur in your application that you want to measure; the
-   * corresponding metrics will be incremented each time the event occurs. For example, you may want
-   * to track when an user click on the login button or a certain article was viewed.
+   * corresponding metrics will be incremented each time the event occurs. For example, you may
+   * want to track when an user click on the login button or a certain article was viewed.
    *
    * <p>
    *
-   * @param action      {@code String} containing the name of the action to track
+   * @param action {@code String} containing the name of the action to track
    * @param contextData {@code Map<String, String>} containing context data to attach on this hit
    */
   public static void trackAction(
@@ -937,10 +932,9 @@ public final class MobileCore {
    *
    * <p>
    *
-   * @param state       {@code String} containing the name of the state to track. It should not be
-   *                    null.
-   * @param contextData optional contextData {@code Map<String, String>} containing context data to
-   *                    attach on this hit
+   * @param state {@code String} containing the name of the state to track. It should not be null.
+   * @param contextData optional contextData {@code Map<String, String>} containing context data
+   *     to attach on this hit
    */
   public static void trackState(
       @NonNull final String state, @Nullable final Map<String, String> contextData) {
