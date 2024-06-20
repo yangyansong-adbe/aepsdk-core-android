@@ -29,7 +29,6 @@ internal sealed class EventListenerContainer {
 
 internal class ResponseListenerContainer(
     val triggerEventId: String,
-    val timeoutTask: ScheduledFuture<Unit>?,
     val listener: AdobeCallbackWithError<Event>
 ) : EventListenerContainer() {
     override fun shouldNotify(event: Event): Boolean {

@@ -35,25 +35,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.async
-import kotlinx.coroutines.channels.ClosedReceiveChannelException
-import kotlinx.coroutines.channels.produce
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.buffer
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.selects.select
-import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.Executors
-import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 
@@ -75,7 +63,8 @@ internal class EventHub {
     /**
      * Executor for eventhub callbacks and response listeners
      */
-    private val scheduledExecutor: ScheduledExecutorService by lazy { Executors.newSingleThreadScheduledExecutor() }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val completionHandlerScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val eventHubScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
@@ -199,10 +188,8 @@ internal class EventHub {
     private suspend fun dispatchInternal(event: Event) {
         val eventNumber = lastEventNumber.incrementAndGet()
         eventNumberMap[event.uniqueIdentifier] = eventNumber
-        // TODO: queue events if event hub is not started
         processEvent(event, eventNumber)
     }
-
 
     private suspend fun processEvent(event: Event, eventNumber: Int) {
         var processedEvent: Event = event
@@ -210,30 +197,14 @@ internal class EventHub {
             processedEvent = eventPreprocessor.process(processedEvent)
         }
 
-        // TODO: fire and forget by using GlobalScope.launch {}
         // Handle response event listeners
         if (processedEvent.responseID != null) {
-            val matchingResponseListeners = responseEventListeners.filterRemove { listener ->
-                if (listener.shouldNotify(processedEvent)) {
-                    listener.timeoutTask?.cancel(false)
-                    true
-                } else {
-                    false
-                }
-            }
-
-            // Call the response event listeners from different thread to avoid block event processing queue
-            executeCompletionHandler {
-                matchingResponseListeners.forEach { listener ->
-                    listener.notify(processedEvent)
+            completionHandlerScope.launch {
+                responseEventListeners.filterRemove { it.shouldNotify(processedEvent)}.forEach { responseListenerContainer ->
+                    responseListenerContainer.notify(processedEvent)
                 }
             }
         }
-
-        // Notify to extensions for processing
-//        registeredExtensions.values.forEach {
-//            it.eventProcessor.offer(processedEvent)
-//        }
 
         _eventsFlow.emit(event)
 
@@ -278,17 +249,21 @@ internal class EventHub {
         eventHubScope.launch {
             val extensionTypeName = extensionClass.extensionTypeName
             if (registeredExtensions.containsKey(extensionTypeName)) {
-                completion?.let { executeCompletionHandler { it(EventHubError.DuplicateExtensionName) } }
-                return@launch
+                completion?.let {
+                    completionHandlerScope.launch {
+                        it(EventHubError.DuplicateExtensionName)
+                    }
+                    return@launch
+                }
             }
-            val container = ExtensionContainer(extensionClass) { error ->
-                completion?.let { executeCompletionHandler { it(error) } }
-//                eventHubExecutor.submit {
-//                    completion?.let { executeCompletionHandler { it(error) } }
-//                    extensionPostRegistration(extensionClass, error)
-//                }
+            registeredExtensions[extensionTypeName] = ExtensionContainer(extensionClass) { error ->
+                completion?.let {
+                    completionHandlerScope.launch {
+                        completion(error)
+                    }
+                }
+                extensionPostRegistration(extensionClass, error)
             }
-            registeredExtensions[extensionTypeName] = container
         }
     }
 
@@ -352,7 +327,9 @@ internal class EventHub {
             EventHubError.ExtensionNotRegistered
         }
 
-        completion.let { executeCompletionHandler { it?.invoke(error) } }
+        completionHandlerScope.launch {
+            completion?.let { it(error) }
+        }
     }
 
     /**
@@ -364,29 +341,18 @@ internal class EventHub {
     fun registerResponseListener(
         triggerEvent: Event, timeoutMS: Long, listener: AdobeCallbackWithError<Event>
     ) {
-        eventHubScope.launch {
-            val triggerEventId = triggerEvent.uniqueIdentifier
-            val timeoutCallable: Callable<Unit> = Callable {
-                responseEventListeners.filterRemove { it.triggerEventId == triggerEventId }
-                try {
-                    listener.fail(AdobeError.CALLBACK_TIMEOUT)
-                } catch (ex: Exception) {
-                    Log.debug(
-                        CoreConstants.LOG_TAG,
-                        LOG_TAG,
-                        "Exception thrown from ResponseListener - $ex"
-                    )
-                }
+        val triggerEventId = triggerEvent.uniqueIdentifier
+        completionHandlerScope.launch {
+            delay(timeoutMS)
+            responseEventListeners.filterRemove { it.triggerEventId == triggerEventId }.forEach { responseListenerContainer ->
+                responseListenerContainer.listener.fail(AdobeError.CALLBACK_TIMEOUT)
             }
-            val timeoutTask =
-                scheduledExecutor.schedule(timeoutCallable, timeoutMS, TimeUnit.MILLISECONDS)
-
-            responseEventListeners.add(
-                ResponseListenerContainer(
-                    triggerEventId, timeoutTask, listener
-                )
-            )
         }
+        responseEventListeners.add(
+            ResponseListenerContainer(
+                triggerEventId, listener
+            )
+        )
     }
 
     /**
@@ -850,17 +816,6 @@ internal class EventHub {
         )
     }
 
-    private fun executeCompletionHandler(runnable: Runnable) {
-        scheduledExecutor.submit {
-            try {
-                runnable.run()
-            } catch (ex: Exception) {
-                Log.debug(
-                    CoreConstants.LOG_TAG, LOG_TAG, "Exception thrown from callback - $ex"
-                )
-            }
-        }
-    }
 }
 
 private fun <T> MutableCollection<T>.filterRemove(predicate: (T) -> Boolean): MutableCollection<T> {
