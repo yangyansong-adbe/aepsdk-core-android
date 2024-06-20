@@ -113,7 +113,7 @@ internal class ExtensionContainer @OptIn(ExperimentalCoroutinesApi::class) const
                 // Notify that the extension is registered
                 extension.onExtensionRegistered()
 
-                eventProcessing = EventHub.shared.events.buffer(1,BufferOverflow.DROP_LATEST).pauseIf {
+                eventProcessing = EventHub.shared.events.buffer(100,BufferOverflow.DROP_LATEST).pauseIf {
                     shouldProcessEvents && extension.readyForEvent(it)
                 }.onEach { event ->
                     eventListeners.forEach {
