@@ -17,6 +17,10 @@ import com.adobe.marketing.mobile.EventHistoryResultHandler
 import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.internal.util.convertMapToFnv1aHash
 import com.adobe.marketing.mobile.services.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
 import kotlin.math.max
 
@@ -30,11 +34,8 @@ internal class AndroidEventHistory : EventHistory {
         private const val LOG_TAG = "AndroidEventHistory"
     }
 
-    /**
-     * Responsible for holding a single thread executor for lazy initialization only if
-     * AndroidEventHistory operations are used.
-     */
-    private val executor by lazy { Executors.newSingleThreadExecutor() }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val eventHistoryScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
 
     /**
      * Record an event in the [AndroidEventHistoryDatabase].
@@ -43,7 +44,7 @@ internal class AndroidEventHistory : EventHistory {
      * @param handler [EventHistoryResultHandler] a callback which will contain a `boolean` indicating if the database operation was successful
      */
     override fun recordEvent(event: Event, handler: EventHistoryResultHandler<Boolean>?) {
-        executor.submit {
+        eventHistoryScope.launch {
             val fnv1aHash = convertMapToFnv1aHash(event.eventData, event.mask)
             Log.debug(
                 CoreConstants.LOG_TAG,
@@ -77,7 +78,7 @@ internal class AndroidEventHistory : EventHistory {
         enforceOrder: Boolean,
         handler: EventHistoryResultHandler<Int>
     ) {
-        executor.submit {
+        eventHistoryScope.launch {
             var dbError = false
             var count = 0
             var latestEventOccurrence: Long? = null
@@ -134,7 +135,7 @@ internal class AndroidEventHistory : EventHistory {
         eventHistoryRequests: Array<out EventHistoryRequest>,
         handler: EventHistoryResultHandler<Int>?
     ) {
-        executor.submit {
+        eventHistoryScope.launch {
             val deletedRows = eventHistoryRequests.fold(0) { acc, request ->
                 acc + androidEventHistoryDatabase.delete(request.maskAsDecimalHash, request.fromDate, request.adjustedToDate)
             }
