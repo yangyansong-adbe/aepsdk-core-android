@@ -10,32 +10,24 @@
 */
 package com.adobe.marketing.mobile.services
 
-import com.adobe.marketing.mobile.internal.AdobeDispatcher
 import com.adobe.marketing.mobile.util.retry.Retry
 import com.adobe.marketing.mobile.util.retry.retryConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
-import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Provides functionality for asynchronous processing of hits in a synchronous manner while
  * providing the ability to retry hits.
  */
 class PersistentHitQueueV2(
-    queue: DataQueue,
-    processor: HitProcessingV2,
+    private val queue: DataQueue,
+    private val processor: HitProcessingV2,
 ) : HitQueuing() {
-    private val queue: DataQueue
-    private val processor: HitProcessingV2
-    private val suspended = AtomicBoolean(true)
-    private val isTaskScheduled = AtomicBoolean(false)
-
-    init {
-        this.queue = queue
-        this.processor = processor
-    }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val hitProcessingScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
 
     override fun queue(entity: DataEntity): Boolean {
         val result = queue.add(entity)
@@ -44,12 +36,11 @@ class PersistentHitQueueV2(
     }
 
     override fun beginProcessing() {
-        suspended.set(false)
         processNextHit()
     }
 
     override fun suspend() {
-        suspended.set(true)
+        hitProcessingScope.coroutineContext.cancelChildren()
     }
 
     override fun clear() {
@@ -63,7 +54,6 @@ class PersistentHitQueueV2(
     override fun close() {
         suspend()
         queue.close()
-//        scheduledExecutorService.shutdown()
     }
 
     /**
@@ -71,40 +61,18 @@ class PersistentHitQueueV2(
      * until none are left in the DataQueue.
      */
     private fun processNextHit() {
-        if (suspended.get()) {
-            return
-        }
-
-        // If taskScheduled is false, then set to true and return true.
-        // If taskScheduled is true, then compareAndSet returns false
-        if (!isTaskScheduled.compareAndSet(false, true)) {
-            return
-        }
-
-        CoroutineScope(AdobeDispatcher).launch {
-            val entity = queue.peek()
-            if (entity == null) {
-                isTaskScheduled.set(false)
-                return@launch
-            }
-            val customIntervalFunction = { _: Long, _: Int, _: Long ->
-                processor.retryInterval(entity).toLong()
-            }
+        hitProcessingScope.launch {
+            val entity = queue.peek() ?: return@launch
             val config = retryConfig {
-                intervalFunction(customIntervalFunction)
+                intervalFunction({ _, _, _ -> processor.retryInterval(entity).toLong() })
             }
-            val executor = Retry.createExecutor<Boolean?>(config)
-                .retryOnException {
-                    it.printStackTrace()
-                    return@retryOnException true
-                }.retryOnResult {
-                    return@retryOnResult it == false
-                }
+            val executor = Retry.createExecutor<Boolean?>(config).retryOnResult {
+                return@retryOnResult it == false
+            }
             executor.execute {
                 val result = processor.processHit(entity)
                 if (result) {
                     queue.remove()
-                    isTaskScheduled.set(false)
                     processNextHit()
                 }
                 return@execute result

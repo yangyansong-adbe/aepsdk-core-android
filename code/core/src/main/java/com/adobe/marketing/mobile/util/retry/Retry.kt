@@ -11,7 +11,6 @@
 
 package com.adobe.marketing.mobile.util.retry
 
-import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 
@@ -25,20 +24,8 @@ object Retry {
 
     private class ExecutorImpl<T>(val config: RetryConfig) : Executor<T> {
 
-        val DEFAULT_RANDOIZED_FACTOR = 0.5
         var retryOnResultFunction: (T?) -> Boolean = { _: T? -> false }
-        var retryOnExceptionFunction: (Exception) -> Boolean = { _: Exception -> false }
-        var resolveThrowableFunction: (Throwable) -> T? = { _: Throwable -> null }
         var retryIntervalOnResultFunction: (T?) -> Long = { _: T? -> 0 }
-        var monitorRetryFunction: ((attempts: Int, lastIntervalWithJitter: Long) -> Unit)? = null
-
-        // TODO: this is the jitter formula used by Polly, will do more investigation and change it later
-        private fun randomize(current: Double, randomizationFactor: Double): Double {
-            val delta = randomizationFactor * current
-            val min = current - delta
-            val max = current + delta
-            return min + Math.random() * (max - min + 1)
-        }
 
         override suspend fun execute(block: suspend () -> T?): T? {
             val initialInterval = config.initialInterval
@@ -46,10 +33,10 @@ object Retry {
             val maxInterval = config.maxInterval
             val maxAttempts = config.maxAttempts
             val executionTimeoutInMilliseconds = config.executionTimeoutInMilliseconds
-            val useJitter = config.useJitter
             var attempt = 0
             var lastInterval = initialInterval
-            while (true) {
+
+            repeat(maxAttempts) {
                 attempt++
                 try {
                     val result: T? = withTimeout(executionTimeoutInMilliseconds) {
@@ -59,20 +46,6 @@ object Retry {
                         return result
                     }
                 } catch (e: Throwable) {
-                    when (e) {
-                        is TimeoutCancellationException -> {
-                            // continue to retry
-                        }
-                        is Exception -> {
-                            if (!retryOnExceptionFunction(e)) {
-                                return null
-                            }
-                        }
-                        else -> return resolveThrowableFunction(e)
-                    }
-                }
-
-                if (attempt >= maxAttempts) {
                     return null
                 }
 
@@ -81,21 +54,9 @@ object Retry {
                 } else {
                     intervalFunction(initialInterval, attempt, lastInterval)
                 }
-
-                if (useJitter) {
-                    val intervalWithJitter = randomize(lastInterval.toDouble(), DEFAULT_RANDOIZED_FACTOR).toLong()
-                    delay(intervalWithJitter)
-                    monitorRetryFunction?.invoke(attempt, intervalWithJitter)
-                } else {
-                    delay(lastInterval)
-                    monitorRetryFunction?.invoke(attempt, lastInterval)
-                }
+                delay(lastInterval)
             }
-        }
-
-        override fun retryOnException(block: (Exception) -> Boolean): Executor<T> {
-            retryOnExceptionFunction = block
-            return this
+            return null
         }
 
         override fun retryOnResult(block: (T?) -> Boolean): Executor<T> {
@@ -108,14 +69,8 @@ object Retry {
             return this
         }
 
-        override fun resolveThrowable(block: (Throwable) -> T?): Executor<T> {
-            resolveThrowableFunction = block
-            return this
-        }
-
         override fun cancel() {}
         override fun monitorRetry(block: (attempts: Int, lastIntervalWithJitter: Long) -> Unit): Executor<T> {
-            monitorRetryFunction = block
             return this
         }
     }

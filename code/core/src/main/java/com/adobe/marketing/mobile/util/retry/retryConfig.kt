@@ -25,23 +25,6 @@ fun exponentialWaitInterval(): NextInterval {
     return { _, _, lastInterval -> lastInterval * 2 }
 }
 
-fun fibonacciWaitInterval(): NextInterval {
-    return { initialInterval, attempt, _ ->
-        fibonacci(
-            attempt,
-            initialInterval,
-            initialInterval + 1
-        )
-    }
-}
-
-private tailrec fun fibonacci(n: Int, a: Long = 0, b: Long = 1): Long =
-    when (n) {
-        0 -> a
-        1 -> b
-        else -> fibonacci(n - 1, b, a + b)
-    }
-
 fun linearWaitInterval(): NextInterval {
     return { initialInterval, _, lastInterval -> lastInterval + initialInterval }
 }
@@ -54,9 +37,7 @@ class RetryConfig private constructor() {
 
     var maxInterval: Long = 1000000L // 1000000 milliseconds = 16 minutes and 40 seconds
         private set
-    var maxAttempts: Int = -1
-        private set
-    var useJitter: Boolean = false
+    var maxAttempts: Int = 5
         private set
 
     var executionTimeoutInMilliseconds: Long = 10000L
@@ -82,10 +63,6 @@ class RetryConfig private constructor() {
 
         fun maxAttempts(attempts: Int) {
             config.maxAttempts = attempts
-        }
-
-        fun useJitter(flag: Boolean) {
-            config.useJitter = flag
         }
 
         fun executionTimeoutInMilliseconds(timeout: Long) {
