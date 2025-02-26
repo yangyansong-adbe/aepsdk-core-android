@@ -65,9 +65,10 @@ class PersistentHitQueueV2(
         if (isProcessing) {
             return
         }
+
         hitProcessingScope.launch {
-            isProcessing = true
             val entity = queue.peek() ?: return@launch
+            isProcessing = true
             val config = retryConfig {
                 intervalFunction({ _, _, _ -> processor.retryInterval(entity).toLong() })
             }
@@ -83,6 +84,7 @@ class PersistentHitQueueV2(
                 }
                 return@execute result
             }
+            isProcessing = false
 
         }
     }
