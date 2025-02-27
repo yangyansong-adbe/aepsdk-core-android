@@ -40,24 +40,24 @@ internal fun MessageBackdrop(
     inAppMessageSettings: InAppMessageSettings,
     gestureTracker: GestureTracker
 ) {
-    val backdropColor = remember { Color(inAppMessageSettings.backdropColor.toColorInt()) }
-
-    // Note that the background enter and exit animations are simple fades. Primarily used to ease in and out the backdrop
-    // separate from the message itself.  This allows smoother visuals and reduces flicker in the animation.
-    AnimatedVisibility(visibleState = visibility, enter = fadeIn(), exit = fadeOut()) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(backdropColor.copy(alpha = inAppMessageSettings.backdropOpacity))
-                .clickable(
-                    enabled = true,
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() },
-                    onClick = {
-                        gestureTracker.onGesture(InAppMessageSettings.MessageGesture.TAP_BACKGROUND)
-                    }
-                )
-                .testTag(MessageTestTags.MESSAGE_BACKDROP)
-        )
-    }
+//    val backdropColor = remember { Color(inAppMessageSettings.backdropColor.toColorInt()) }
+//
+//    // Note that the background enter and exit animations are simple fades. Primarily used to ease in and out the backdrop
+//    // separate from the message itself.  This allows smoother visuals and reduces flicker in the animation.
+//    AnimatedVisibility(visibleState = visibility, enter = fadeIn(), exit = fadeOut()) {
+//        Box(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .background(backdropColor.copy(alpha = inAppMessageSettings.backdropOpacity))
+//                .clickable(
+//                    enabled = true,
+//                    indication = null,
+//                    interactionSource = remember { MutableInteractionSource() },
+//                    onClick = {
+//                        gestureTracker.onGesture(InAppMessageSettings.MessageGesture.TAP_BACKGROUND)
+//                    }
+//                )
+//                .testTag(MessageTestTags.MESSAGE_BACKDROP)
+//        )
+//    }
 }

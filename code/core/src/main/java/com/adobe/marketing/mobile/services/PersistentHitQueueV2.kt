@@ -67,6 +67,11 @@ class PersistentHitQueueV2(
         }
 
         hitProcessingScope.launch {
+            Log.debug(
+                ServiceConstants.LOG_TAG,
+                "PersistentHitQueueV2",
+                "ADB-HQ: ${Thread.currentThread().name}"
+            )
             val entity = queue.peek() ?: return@launch
             isProcessing = true
             val config = retryConfig {
