@@ -15,6 +15,7 @@ import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventHistoryRequest
 import com.adobe.marketing.mobile.EventHistoryResultHandler
 import com.adobe.marketing.mobile.internal.CoreConstants
+import com.adobe.marketing.mobile.internal.util.CustomThreadFactory
 import com.adobe.marketing.mobile.internal.util.convertMapToFnv1aHash
 import com.adobe.marketing.mobile.services.Log
 import java.util.concurrent.Executors
@@ -34,7 +35,7 @@ internal class AndroidEventHistory : EventHistory {
      * Responsible for holding a single thread executor for lazy initialization only if
      * AndroidEventHistory operations are used.
      */
-    private val executor by lazy { Executors.newSingleThreadExecutor() }
+    private val executor by lazy { Executors.newSingleThreadExecutor(CustomThreadFactory("ADB-AndroidEventHistory")) }
 
     /**
      * Record an event in the [AndroidEventHistoryDatabase].

@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile.util
 
 import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.internal.CoreConstants
+import com.adobe.marketing.mobile.internal.util.CustomThreadFactory
 import com.adobe.marketing.mobile.services.Log
 import java.lang.Exception
 import java.lang.IllegalStateException
@@ -83,7 +84,7 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
     /**
      * The executor to which work is submitted for sequencing.
      */
-    private var executorService: ExecutorService = Executors.newSingleThreadExecutor()
+    private var executorService: ExecutorService = Executors.newSingleThreadExecutor(CustomThreadFactory("ADB-"+ this.name))
 
     /**
      * Holds the work items that need to be processed by this dispatcher.
