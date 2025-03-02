@@ -28,6 +28,7 @@ import com.adobe.marketing.mobile.WrapperType
 import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.internal.eventhub.history.AndroidEventHistory
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory
+import com.adobe.marketing.mobile.internal.util.CustomThreadFactory
 import com.adobe.marketing.mobile.internal.util.prettify
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.util.EventDataUtils
@@ -54,12 +55,12 @@ internal class EventHub {
     /**
      * Executor for eventhub callbacks and response listeners
      */
-    private val scheduledExecutor: ScheduledExecutorService by lazy { Executors.newSingleThreadScheduledExecutor() }
+    private val scheduledExecutor: ScheduledExecutorService by lazy { Executors.newSingleThreadScheduledExecutor(CustomThreadFactory("ADB-scheduledExecutor")) }
 
     /**
      * Executor to serialize EventHub operations
      */
-    private val eventHubExecutor: ExecutorService by lazy { Executors.newSingleThreadExecutor() }
+    private val eventHubExecutor: ExecutorService by lazy { Executors.newSingleThreadExecutor(CustomThreadFactory("ADB-eventHubExecutor")) }
 
     /**
      * Concurrent map which stores the backing extension container for each Extension and can be referenced by extension type name

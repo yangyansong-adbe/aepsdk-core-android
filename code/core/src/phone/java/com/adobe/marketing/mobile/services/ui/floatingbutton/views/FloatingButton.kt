@@ -57,91 +57,91 @@ internal fun FloatingButton(
     onClick: () -> Unit,
     onDragFinished: (Offset) -> Unit
 ) {
-    // Floating button draggable area dimensions
-    val heightDp = with(LocalConfiguration.current) { mutableStateOf(screenHeightDp.dp) }
-    val widthDp = with(LocalConfiguration.current) { mutableStateOf(screenWidthDp.dp) }
-
-    // Floating button dimensions
-    val fbHeightDp: Dp = remember { settings.height.dp }
-    val fbWidthDp: Dp = remember { settings.width.dp }
-    val padding: Dp = remember { 4.dp }
-
-    // Calculate initial offset of the floating button. The default offset is the top right corner
-    // of the screen. If the offset is specified, then use that value instead.
-    val widthPx = with(LocalDensity.current) { remember { widthDp.value.toPx() } }
-    val fbWidthPx = with(LocalDensity.current) { remember { fbWidthDp.toPx() } }
-    val paddingPx = with(LocalDensity.current) { remember { padding.toPx() } }
-    val correctedOffset = remember {
-        if (offset == Offset.Unspecified) {
-            Offset(
-                widthPx - fbWidthPx - paddingPx,
-                0f
-            )
-        } else {
-            offset
-        }
-    }
-
-    // Tracks the offset of the floating button as a result of dragging
-    val offsetState = remember { mutableStateOf(correctedOffset) }
-
-    // The draggable area for the floating button
-    Box(
-        modifier = Modifier
-            .height(heightDp.value)
-            .width(widthDp.value)
-            .testTag(FloatingButtonTestTags.FLOATING_BUTTON_AREA)
-    ) {
-        FloatingActionButton(
-            modifier = Modifier
-                .height(fbHeightDp)
-                .width(fbWidthDp)
-                .padding(padding)
-                .wrapContentSize()
-                .offset {
-                    IntOffset(
-                        offsetState.value.x.roundToInt(),
-                        offsetState.value.y.roundToInt()
-                    )
-                }
-                .pointerInput(Unit) {
-                    detectDragGestures(
-                        onDragEnd = {
-                            onDragFinished(offsetState.value)
-                        }
-                    ) { change, dragAmount ->
-                        change.consumeAllChanges()
-                        // Calculate new offset as a result of dragging
-                        val newX = (offsetState.value.x + dragAmount.x)
-                        val newY = (offsetState.value.y + dragAmount.y)
-
-                        // Update the offset state with the new calculated offset while ensuring
-                        // that the floating button stays within the draggable area.
-                        // Offset values are in pixels, so we need to convert Dp to Px
-                        offsetState.value = Offset(
-                            newX.coerceIn(0f, (widthDp.value - fbWidthDp).toPx()),
-                            newY.coerceIn(0f, (heightDp.value - fbHeightDp).toPx())
-                        )
-                    }
-                }
-                .testTag(FloatingButtonTestTags.FLOATING_BUTTON),
-            // Remove the default elevation and background color of the floating button to ensure
-            // that the floating button graphic is the only thing that is displayed without any
-            // additional white background or shadow
-            elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp),
-            onClick = { onClick() },
-            shape = RoundedCornerShape(settings.cornerRadius.dp),
-            backgroundColor = Color.Transparent
-        ) {
-            // Represents the floating button graphic
-            Image(
-                bitmap = graphic.value,
-                contentDescription = "Floating Button",
-                modifier = Modifier
-                    .background(Color.Transparent)
-                    .wrapContentSize()
-                    .testTag(FloatingButtonTestTags.FLOATING_BUTTON_GRAPHIC)
-            )
-        }
-    }
+//    // Floating button draggable area dimensions
+//    val heightDp = with(LocalConfiguration.current) { mutableStateOf(screenHeightDp.dp) }
+//    val widthDp = with(LocalConfiguration.current) { mutableStateOf(screenWidthDp.dp) }
+//
+//    // Floating button dimensions
+//    val fbHeightDp: Dp = remember { settings.height.dp }
+//    val fbWidthDp: Dp = remember { settings.width.dp }
+//    val padding: Dp = remember { 4.dp }
+//
+//    // Calculate initial offset of the floating button. The default offset is the top right corner
+//    // of the screen. If the offset is specified, then use that value instead.
+//    val widthPx = with(LocalDensity.current) { remember { widthDp.value.toPx() } }
+//    val fbWidthPx = with(LocalDensity.current) { remember { fbWidthDp.toPx() } }
+//    val paddingPx = with(LocalDensity.current) { remember { padding.toPx() } }
+//    val correctedOffset = remember {
+//        if (offset == Offset.Unspecified) {
+//            Offset(
+//                widthPx - fbWidthPx - paddingPx,
+//                0f
+//            )
+//        } else {
+//            offset
+//        }
+//    }
+//
+//    // Tracks the offset of the floating button as a result of dragging
+//    val offsetState = remember { mutableStateOf(correctedOffset) }
+//
+//    // The draggable area for the floating button
+//    Box(
+//        modifier = Modifier
+//            .height(heightDp.value)
+//            .width(widthDp.value)
+//            .testTag(FloatingButtonTestTags.FLOATING_BUTTON_AREA)
+//    ) {
+//        FloatingActionButton(
+//            modifier = Modifier
+//                .height(fbHeightDp)
+//                .width(fbWidthDp)
+//                .padding(padding)
+//                .wrapContentSize()
+//                .offset {
+//                    IntOffset(
+//                        offsetState.value.x.roundToInt(),
+//                        offsetState.value.y.roundToInt()
+//                    )
+//                }
+//                .pointerInput(Unit) {
+//                    detectDragGestures(
+//                        onDragEnd = {
+//                            onDragFinished(offsetState.value)
+//                        }
+//                    ) { change, dragAmount ->
+//                        change.consumeAllChanges()
+//                        // Calculate new offset as a result of dragging
+//                        val newX = (offsetState.value.x + dragAmount.x)
+//                        val newY = (offsetState.value.y + dragAmount.y)
+//
+//                        // Update the offset state with the new calculated offset while ensuring
+//                        // that the floating button stays within the draggable area.
+//                        // Offset values are in pixels, so we need to convert Dp to Px
+//                        offsetState.value = Offset(
+//                            newX.coerceIn(0f, (widthDp.value - fbWidthDp).toPx()),
+//                            newY.coerceIn(0f, (heightDp.value - fbHeightDp).toPx())
+//                        )
+//                    }
+//                }
+//                .testTag(FloatingButtonTestTags.FLOATING_BUTTON),
+//            // Remove the default elevation and background color of the floating button to ensure
+//            // that the floating button graphic is the only thing that is displayed without any
+//            // additional white background or shadow
+//            elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp),
+//            onClick = { onClick() },
+//            shape = RoundedCornerShape(settings.cornerRadius.dp),
+//            backgroundColor = Color.Transparent
+//        ) {
+//            // Represents the floating button graphic
+//            Image(
+//                bitmap = graphic.value,
+//                contentDescription = "Floating Button",
+//                modifier = Modifier
+//                    .background(Color.Transparent)
+//                    .wrapContentSize()
+//                    .testTag(FloatingButtonTestTags.FLOATING_BUTTON_GRAPHIC)
+//            )
+//        }
+//    }
 }

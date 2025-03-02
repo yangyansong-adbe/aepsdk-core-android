@@ -13,6 +13,8 @@ package com.adobe.marketing.mobile.services;
 
 import android.net.ConnectivityManager;
 import androidx.annotation.VisibleForTesting;
+
+import com.adobe.marketing.mobile.internal.util.CustomThreadFactory;
 import com.adobe.marketing.mobile.internal.util.NetworkUtils;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -46,7 +48,8 @@ class NetworkService implements Networking {
                         THREAD_POOL_MAXIMUM_SIZE,
                         THREAD_POOL_KEEP_ALIVE_TIME,
                         TimeUnit.SECONDS,
-                        new SynchronousQueue<Runnable>());
+                        new SynchronousQueue<Runnable>(),
+                        new CustomThreadFactory("ADB-NS"));
     }
 
     @VisibleForTesting
