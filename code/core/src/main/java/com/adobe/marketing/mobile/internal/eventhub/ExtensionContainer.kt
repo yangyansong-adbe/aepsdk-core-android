@@ -22,10 +22,20 @@ import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.services.Log
-import com.adobe.marketing.mobile.util.SerialWorkDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.launch
+import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
 
-internal class ExtensionContainer constructor(
+private val subscriberScope = CoroutineScope(
+    SDKDispatcher.createDispatcher(1)
+)
+
+internal class ExtensionContainer(
     private val extensionClass: Class<out Extension>,
     callback: (EventHubError) -> Unit
 ) : ExtensionApi() {
@@ -56,61 +66,15 @@ internal class ExtensionContainer constructor(
     private val eventListeners: ConcurrentLinkedQueue<ExtensionListenerContainer> =
         ConcurrentLinkedQueue()
 
-    /**
-     * Implementation of [SerialWorkDispatcher.WorkHandler] that is responsible for dispatching
-     * an [Event] "e". Dispatch is regarded complete when [SerialWorkDispatcher.WorkHandler.doWork] finishes for "e".
-     */
-    private val dispatchJob: SerialWorkDispatcher.WorkHandler<Event> =
-        SerialWorkDispatcher.WorkHandler { event ->
-            if (extension?.readyForEvent(event) != true) {
-                return@WorkHandler false
-            }
+    private val processingScope = CoroutineScope(
+        SDKDispatcher.createDispatcher(1)
+    )
 
-            eventListeners.forEach {
-                if (it.shouldNotify(event)) {
-                    it.notify(event)
-                }
-            }
+    private val eventChannel = Channel<Event>(Channel.UNLIMITED)
 
-            lastProcessedEvent = event
-            return@WorkHandler true
-        }
+    private val eventQueue: Queue<Event> = ConcurrentLinkedQueue()
 
-    private val initJob = Runnable {
-        val extension = extensionClass.initWith(this)
-        if (extension == null) {
-            callback(EventHubError.ExtensionInitializationFailure)
-            return@Runnable
-        }
-
-        val extensionName = extension.extensionName
-        if (extensionName.isNullOrBlank()) {
-            callback(EventHubError.InvalidExtensionName)
-            return@Runnable
-        }
-
-        this.extension = extension
-        sharedStateName = extensionName
-        friendlyName = extension.extensionFriendlyName
-        version = extension.extensionVersion
-        metadata = extension.extensionMetadata
-
-        sharedStateManagers = mapOf(
-            SharedStateType.XDM to SharedStateManager(extensionName),
-            SharedStateType.STANDARD to SharedStateManager(extensionName)
-        )
-
-        Log.debug(
-            CoreConstants.LOG_TAG,
-            getTag(),
-            "Extension registered"
-        )
-
-        callback(EventHubError.None)
-
-        // Notify that the extension is registered
-        extension.onExtensionRegistered()
-    }
+    private val job: Job
 
     private val teardownJob = Runnable {
         extension?.onExtensionUnregistered()
@@ -121,18 +85,127 @@ internal class ExtensionContainer constructor(
         )
     }
 
-    val eventProcessor: SerialWorkDispatcher<Event> =
-        SerialWorkDispatcher(extensionClass.extensionTypeName, dispatchJob)
+    @Volatile
+    private var state = State.IDLE
 
     init {
+        job = subscribeTo(EventHub.shared.events)
+        // Launch a coroutine in the processing scope to sequentially process events from the queue.
 
-        eventProcessor.setInitialJob(initJob)
-        eventProcessor.setFinalJob(teardownJob)
-        eventProcessor.start()
+        processingScope.launch {
+            state = State.RUNNING
+            extension = extensionClass.initWith(this@ExtensionContainer)
+            extension?.let { ext ->
+                ext.extensionName.takeUnless { it.isNullOrBlank() }?.let { name ->
+                    sharedStateName = name
+                    friendlyName = ext.extensionFriendlyName
+                    version = ext.extensionVersion
+                    metadata = ext.extensionMetadata
+
+                    sharedStateManagers = mapOf(
+                        SharedStateType.XDM to SharedStateManager(name),
+                        SharedStateType.STANDARD to SharedStateManager(name)
+                    )
+
+                    Log.debug(
+                        CoreConstants.LOG_TAG,
+                        getTag(),
+                        "Extension registered"
+                    )
+
+                    callback(EventHubError.None)
+                    ext.onExtensionRegistered()
+                } ?: run {
+                    callback(EventHubError.InvalidExtensionName)
+                    //TODO: cleanup - cancel job?
+                    return@launch
+                }
+            } ?: run {
+                //TODO: cleanup - cancel job?
+                callback(EventHubError.ExtensionInitializationFailure)
+                return@launch
+            }
+
+            if (state == State.RUNNING) {
+                state = State.IDLE
+            }
+
+            for (event in eventChannel) {
+                eventQueue.add(event)
+                if (friendlyName == "Edge") {
+                    Log.warning(
+                        CoreConstants.LOG_TAG,
+                        getTag(),
+                        "eventChannel - ${event.name}"
+                    )
+                }
+                processEventQueue()
+            }
+        }
+
+//        eventProcessor.setInitialJob(initJob)
+//        eventProcessor.setFinalJob(teardownJob)
+//        eventProcessor.start()
     }
 
+    private suspend fun processEventQueue() =
+//        withTimeoutOrNull(10000) {
+        // TODO: when timeout reached, retry processing the event may run into issues. Consider remove the timeout.
+        coroutineScope {
+
+            if (state == State.RUNNING) {
+                Log.warning(
+                    CoreConstants.LOG_TAG,
+                    getTag(),
+                    "Still processing the previous event."
+                )
+                return@coroutineScope
+            }
+            while (eventQueue.isNotEmpty()) {
+                if (state == State.PENDING) {
+                    return@coroutineScope
+                }
+                state = State.RUNNING
+                // Check the event at the front of the queue.
+                val candidate = eventQueue.peek() ?: return@coroutineScope
+                if (extension?.readyForEvent(candidate) == true) {
+                    eventQueue.poll()?.let { event ->
+
+                        eventListeners.forEach {
+                            if (it.shouldNotify(event)) {
+                                it.notify(event)
+                            }
+                        }
+                        lastProcessedEvent = event
+                    }
+
+                } else {
+                    state = State.IDLE
+                    return@coroutineScope
+                }
+            }
+            if (state == State.RUNNING) {
+                state = State.IDLE
+            }
+        }
+
+    private fun subscribeTo(events: SharedFlow<Event>) =
+        subscriberScope.launch {
+            events.collect {
+                if (friendlyName == "Edge") {
+                    Log.warning(
+                        CoreConstants.LOG_TAG,
+                        getTag(),
+                        "${it.name}"
+                    )
+                }
+                eventChannel.send(it)
+            }
+        }
+
     fun shutdown() {
-        eventProcessor.shutdown()
+        //TODO: ..
+//        eventProcessor.shutdown()
     }
 
     /**
@@ -166,11 +239,16 @@ internal class ExtensionContainer constructor(
     }
 
     override fun startEvents() {
-        eventProcessor.resume()
+        if (state == State.PENDING) {
+            state = State.IDLE
+        }
+        processingScope.launch {
+            processEventQueue()
+        }
     }
 
     override fun stopEvents() {
-        eventProcessor.pause()
+        state = State.PENDING
     }
 
     override fun createSharedState(
@@ -192,6 +270,7 @@ internal class ExtensionContainer constructor(
             state,
             event
         )
+
     }
 
     override fun createPendingSharedState(
@@ -211,6 +290,7 @@ internal class ExtensionContainer constructor(
             sharedStateName,
             event
         )
+
     }
 
     override fun getSharedState(
@@ -242,6 +322,8 @@ internal class ExtensionContainer constructor(
         }
 
         EventHub.shared.createSharedState(SharedStateType.XDM, sharedStateName, state, event)
+
+
     }
 
     override fun createPendingXDMSharedState(
@@ -272,6 +354,7 @@ internal class ExtensionContainer constructor(
             barrier,
             resolution
         )
+
     }
 
     override fun unregisterExtension() {
@@ -285,4 +368,10 @@ internal class ExtensionContainer constructor(
     ) {
         EventHub.shared.eventHistory?.getEvents(eventHistoryRequests, enforceOrder, handler)
     }
+}
+
+private enum class State {
+    PENDING,
+    IDLE,
+    RUNNING
 }
