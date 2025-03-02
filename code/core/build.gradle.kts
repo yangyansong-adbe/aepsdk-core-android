@@ -52,6 +52,7 @@ apiValidation {
 dependencies {
     implementation(BuildConstants.Dependencies.ANDROIDX_LIFECYCLE_KTX)
     implementation("androidx.lifecycle:lifecycle-process:$lifecycleProcessVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
 
     androidTestImplementation(BuildConstants.Dependencies.MOCKITO_CORE)
     androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0")

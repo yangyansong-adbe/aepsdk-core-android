@@ -1,5 +1,5 @@
 /*
-  Copyright 2022 Adobe. All rights reserved.
+  Copyright 2025 Adobe. All rights reserved.
   This file is licensed to you under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License. You may obtain a copy
   of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -8,15 +8,16 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
 */
+package com.adobe.marketing.mobile.services
 
-package com.adobe.marketing.mobile;
+interface SuspendableHitProcessing {
+    /**
+     * Determines the interval at which a hit should be retried
+     *
+     * @param entity The hit whose retry interval is to be computed
+     * @return Hit retry interval in seconds.
+     */
+    fun retryInterval(entity: DataEntity): Int
 
-import androidx.annotation.NonNull;
-
-/**
- * Defines a generic listener that can hear a specific kind of {@code Event} on an {@code EventHub}
- */
-@FunctionalInterface
-public interface ExtensionEventListener {
-    void hear(@NonNull final Event event);
+    suspend fun processHit(entity: DataEntity): Boolean
 }

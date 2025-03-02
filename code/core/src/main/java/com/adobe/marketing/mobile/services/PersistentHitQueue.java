@@ -12,6 +12,9 @@
 package com.adobe.marketing.mobile.services;
 
 import androidx.annotation.VisibleForTesting;
+
+import com.adobe.marketing.mobile.internal.util.CustomThreadFactory;
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +41,7 @@ public class PersistentHitQueue extends HitQueuing {
      */
     public PersistentHitQueue(final DataQueue queue, final HitProcessing processor)
             throws IllegalArgumentException {
-        this(queue, processor, Executors.newSingleThreadScheduledExecutor());
+        this(queue, processor, Executors.newSingleThreadScheduledExecutor(new CustomThreadFactory("ADB-HQ")));
     }
 
     @VisibleForTesting

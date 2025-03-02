@@ -1,5 +1,5 @@
 /*
-  Copyright 2022 Adobe. All rights reserved.
+  Copyright 2025 Adobe. All rights reserved.
   This file is licensed to you under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License. You may obtain a copy
   of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -9,14 +9,15 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.util.retry
 
-import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting
 
-/**
- * Defines a generic listener that can hear a specific kind of {@code Event} on an {@code EventHub}
- */
-@FunctionalInterface
-public interface ExtensionEventListener {
-    void hear(@NonNull final Event event);
+interface Executor <T> {
+    suspend fun execute(block: suspend () -> T?): T?
+    fun retryOnResult(block: (T?) -> Boolean): Executor<T>
+    fun retryIntervalOnResult(block: (T?) -> Long): Executor<T>
+    fun cancel()
+    @VisibleForTesting
+    fun monitorRetry(block: (attempts: Int, lastIntervalWithJitter: Long) -> Unit): Executor<T>
 }

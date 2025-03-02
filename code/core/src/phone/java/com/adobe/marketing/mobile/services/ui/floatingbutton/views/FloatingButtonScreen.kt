@@ -38,25 +38,25 @@ internal fun FloatingButtonScreen(
     onTapDetected: () -> Unit,
     onPanDetected: (Offset) -> Unit
 ) {
-    AnimatedVisibility(
-        visibleState = presentationStateManager.visibilityState,
-        enter = fadeIn()
-    ) {
-        val orientation = LocalConfiguration.current.orientation
-
-        FloatingButton(
-            settings = floatingButtonSettings,
-            graphic = floatingButtonViewModel.currentGraphic,
-            offset = if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                floatingButtonViewModel.landscapeOffSet
-            } else {
-                floatingButtonViewModel.portraitOffSet
-            },
-            onClick = { onTapDetected() },
-            onDragFinished = {
-                floatingButtonViewModel.onPositionUpdate(it, orientation)
-                onPanDetected(it)
-            }
-        )
-    }
+//    AnimatedVisibility(
+//        visibleState = presentationStateManager.visibilityState,
+//        enter = fadeIn()
+//    ) {
+//        val orientation = LocalConfiguration.current.orientation
+//
+//        FloatingButton(
+//            settings = floatingButtonSettings,
+//            graphic = floatingButtonViewModel.currentGraphic,
+//            offset = if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+//                floatingButtonViewModel.landscapeOffSet
+//            } else {
+//                floatingButtonViewModel.portraitOffSet
+//            },
+//            onClick = { onTapDetected() },
+//            onDragFinished = {
+//                floatingButtonViewModel.onPositionUpdate(it, orientation)
+//                onPanDetected(it)
+//            }
+//        )
+//    }
 }

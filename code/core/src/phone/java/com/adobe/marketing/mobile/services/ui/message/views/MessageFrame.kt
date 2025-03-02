@@ -68,124 +68,124 @@ internal fun MessageFrame(
     onCreated: (WebView) -> Unit,
     onDisposed: () -> Unit
 ) {
-    // The current context is the activity that is hosting the message. We can safely cast it to
-    // an Activity because this composable is always used within the context of the activity in
-    // the current implementation of UIService
-    val currentActivity = LocalContext.current.findActivity() ?: run {
-        onDisposed()
-        Log.debug(ServiceConstants.LOG_TAG, "MessageFrame", "Unable to get the current activity. Dismissing the message.")
-        return
-    }
-
-    // We want to calculate the height and width of the message based on the host activity's
-    // content view. This is because the message is displayed on top of the content view and
-    // we want to ensure that the message is displayed relative to the activity's size.
-    // This allows the message to be displayed correctly in split screen mode and other
-    // multi-window modes.
-    val density = LocalDensity.current
-    val contentView = currentActivity.findViewById<View>(android.R.id.content)
-    val contentHeightDp = with(density) { contentView.height.toDp() }
-    val contentWidthDp = with(density) { contentView.width.toDp() }
-    val heightDp = remember { mutableStateOf(((contentHeightDp * inAppMessageSettings.height) / 100)) }
-    val widthDp = remember { mutableStateOf(((contentWidthDp * inAppMessageSettings.width) / 100)) }
-
-    val horizontalOffset = MessageOffsetMapper.getHorizontalOffset(
-        inAppMessageSettings.horizontalAlignment,
-        inAppMessageSettings.horizontalInset,
-        widthDp.value
-    )
-    val verticalOffset = MessageOffsetMapper.getVerticalOffset(
-        inAppMessageSettings.verticalAlignment,
-        inAppMessageSettings.verticalInset,
-        heightDp.value
-    )
-
-    val allowGestures = remember { inAppMessageSettings.gestureMap.isNotEmpty() }
-    val offsetX = remember { mutableStateOf(0f) }
-    val offsetY = remember { mutableStateOf(0f) }
-    val dragVelocity = remember { mutableStateOf(0f) }
-
-    val adjustAlphaForClipping = remember { Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1 }
-    AnimatedVisibility(
-        visibleState = visibility,
-        enter = MessageAnimationMapper.getEnterTransitionFor(inAppMessageSettings.displayAnimation),
-        // Use a combination of the exit transition and the most recent gesture to animate the message out of the screen
-        // This allows animating out in the direction of the gesture as opposed to the default exit animation always
-        exit = gestureTracker.getExitTransition()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .onPlaced {
-                    heightDp.value = with(density) { ((contentView.height.toDp() * inAppMessageSettings.height) / 100) }
-                    widthDp.value = with(density) { ((contentView.width.toDp() * inAppMessageSettings.width) / 100) }
-                }
-                .offset(x = horizontalOffset, y = verticalOffset)
-                .background(Color.Transparent)
-                .testTag(MessageTestTags.MESSAGE_FRAME),
-            horizontalArrangement = MessageArrangementMapper.getHorizontalArrangement(
-                inAppMessageSettings.horizontalAlignment
-            ),
-            verticalAlignment = MessageAlignmentMapper.getVerticalAlignment(inAppMessageSettings.verticalAlignment)
-        ) {
-            // The content of the InAppMessage.
-            Card(
-                backgroundColor = Color.Transparent,
-                elevation = 0.dp, // Ensure that the card does not cast a shadow
-                modifier = Modifier
-                    .clip(RoundedCornerShape(inAppMessageSettings.cornerRadius.dp))
-                    .let {
-                        // Needs .99 alpha to ensure that the WebView message is clipped to
-                        // the rounded corners for API versions 22 and below.
-                        if (adjustAlphaForClipping) it.alpha(0.99f) else it
-                    }
-                    .draggable(
-                        enabled = allowGestures,
-                        state = rememberDraggableState { delta ->
-                            offsetX.value += delta
-                        },
-                        orientation = Orientation.Horizontal,
-                        onDragStopped = { velocity ->
-                            gestureTracker.onDragFinished(
-                                offsetX.value,
-                                offsetY.value,
-                                velocity
-                            )
-                            dragVelocity.value = 0f
-                            offsetY.value = 0f
-                            offsetX.value = 0f
-                        }
-                    )
-                    .draggable(
-                        enabled = allowGestures,
-                        state = rememberDraggableState { delta ->
-                            offsetY.value += delta
-                        },
-                        orientation = Orientation.Vertical,
-                        onDragStopped = { velocity ->
-                            gestureTracker.onDragFinished(
-                                offsetX.value,
-                                offsetY.value,
-                                velocity
-                            )
-                            dragVelocity.value = 0f
-                            offsetY.value = 0f
-                            offsetX.value = 0f
-                        }
-                    )
-            ) {
-                MessageContent(Modifier.height(heightDp.value).width(widthDp.value), inAppMessageSettings, onCreated)
-            }
-
-            // This is a one-time effect that will be called when this composable is completely removed from the composition
-            // (after any animations if any). Use this to clean up any resources that were created in onCreated.
-            DisposableEffect(Unit) {
-                onDispose {
-                    onDisposed()
-                }
-            }
-        }
-    }
+//    // The current context is the activity that is hosting the message. We can safely cast it to
+//    // an Activity because this composable is always used within the context of the activity in
+//    // the current implementation of UIService
+//    val currentActivity = LocalContext.current.findActivity() ?: run {
+//        onDisposed()
+//        Log.debug(ServiceConstants.LOG_TAG, "MessageFrame", "Unable to get the current activity. Dismissing the message.")
+//        return
+//    }
+//
+//    // We want to calculate the height and width of the message based on the host activity's
+//    // content view. This is because the message is displayed on top of the content view and
+//    // we want to ensure that the message is displayed relative to the activity's size.
+//    // This allows the message to be displayed correctly in split screen mode and other
+//    // multi-window modes.
+//    val density = LocalDensity.current
+//    val contentView = currentActivity.findViewById<View>(android.R.id.content)
+//    val contentHeightDp = with(density) { contentView.height.toDp() }
+//    val contentWidthDp = with(density) { contentView.width.toDp() }
+//    val heightDp = remember { mutableStateOf(((contentHeightDp * inAppMessageSettings.height) / 100)) }
+//    val widthDp = remember { mutableStateOf(((contentWidthDp * inAppMessageSettings.width) / 100)) }
+//
+//    val horizontalOffset = MessageOffsetMapper.getHorizontalOffset(
+//        inAppMessageSettings.horizontalAlignment,
+//        inAppMessageSettings.horizontalInset,
+//        widthDp.value
+//    )
+//    val verticalOffset = MessageOffsetMapper.getVerticalOffset(
+//        inAppMessageSettings.verticalAlignment,
+//        inAppMessageSettings.verticalInset,
+//        heightDp.value
+//    )
+//
+//    val allowGestures = remember { inAppMessageSettings.gestureMap.isNotEmpty() }
+//    val offsetX = remember { mutableStateOf(0f) }
+//    val offsetY = remember { mutableStateOf(0f) }
+//    val dragVelocity = remember { mutableStateOf(0f) }
+//
+//    val adjustAlphaForClipping = remember { Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1 }
+//    AnimatedVisibility(
+//        visibleState = visibility,
+//        enter = MessageAnimationMapper.getEnterTransitionFor(inAppMessageSettings.displayAnimation),
+//        // Use a combination of the exit transition and the most recent gesture to animate the message out of the screen
+//        // This allows animating out in the direction of the gesture as opposed to the default exit animation always
+//        exit = gestureTracker.getExitTransition()
+//    ) {
+//        Row(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .onPlaced {
+//                    heightDp.value = with(density) { ((contentView.height.toDp() * inAppMessageSettings.height) / 100) }
+//                    widthDp.value = with(density) { ((contentView.width.toDp() * inAppMessageSettings.width) / 100) }
+//                }
+//                .offset(x = horizontalOffset, y = verticalOffset)
+//                .background(Color.Transparent)
+//                .testTag(MessageTestTags.MESSAGE_FRAME),
+//            horizontalArrangement = MessageArrangementMapper.getHorizontalArrangement(
+//                inAppMessageSettings.horizontalAlignment
+//            ),
+//            verticalAlignment = MessageAlignmentMapper.getVerticalAlignment(inAppMessageSettings.verticalAlignment)
+//        ) {
+//            // The content of the InAppMessage.
+//            Card(
+//                backgroundColor = Color.Transparent,
+//                elevation = 0.dp, // Ensure that the card does not cast a shadow
+//                modifier = Modifier
+//                    .clip(RoundedCornerShape(inAppMessageSettings.cornerRadius.dp))
+//                    .let {
+//                        // Needs .99 alpha to ensure that the WebView message is clipped to
+//                        // the rounded corners for API versions 22 and below.
+//                        if (adjustAlphaForClipping) it.alpha(0.99f) else it
+//                    }
+//                    .draggable(
+//                        enabled = allowGestures,
+//                        state = rememberDraggableState { delta ->
+//                            offsetX.value += delta
+//                        },
+//                        orientation = Orientation.Horizontal,
+//                        onDragStopped = { velocity ->
+//                            gestureTracker.onDragFinished(
+//                                offsetX.value,
+//                                offsetY.value,
+//                                velocity
+//                            )
+//                            dragVelocity.value = 0f
+//                            offsetY.value = 0f
+//                            offsetX.value = 0f
+//                        }
+//                    )
+//                    .draggable(
+//                        enabled = allowGestures,
+//                        state = rememberDraggableState { delta ->
+//                            offsetY.value += delta
+//                        },
+//                        orientation = Orientation.Vertical,
+//                        onDragStopped = { velocity ->
+//                            gestureTracker.onDragFinished(
+//                                offsetX.value,
+//                                offsetY.value,
+//                                velocity
+//                            )
+//                            dragVelocity.value = 0f
+//                            offsetY.value = 0f
+//                            offsetX.value = 0f
+//                        }
+//                    )
+//            ) {
+//                MessageContent(Modifier.height(heightDp.value).width(widthDp.value), inAppMessageSettings, onCreated)
+//            }
+//
+//            // This is a one-time effect that will be called when this composable is completely removed from the composition
+//            // (after any animations if any). Use this to clean up any resources that were created in onCreated.
+//            DisposableEffect(Unit) {
+//                onDispose {
+//                    onDisposed()
+//                }
+//            }
+//        }
+//    }
 }
 
 /**

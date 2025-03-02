@@ -48,104 +48,104 @@ internal fun MessageScreen(
     onBackPressed: () -> Unit,
     onGestureDetected: (InAppMessageSettings.MessageGesture) -> Unit
 ) {
-    // A gesture tracker to be injected into all subcomponents for identifying and
-    // propagating gestures
-    val gestureTracker: GestureTracker =
-        remember {
-            GestureTracker(
-                defaultExitTransition = MessageAnimationMapper.getExitTransitionFor(
-                    inAppMessageSettings.dismissAnimation
-                ),
-                acceptedGestures = inAppMessageSettings.gestureMap.keys
-            ) {
-                onGestureDetected(it)
-            }
-        }
-
-    // BackHandler conditionally handles the back press event based on the visibility of the message
-    BackHandler(enabled = presentationStateManager.presentableState.value == Presentable.State.VISIBLE) {
-        onBackPressed()
-    }
-
-    Message(
-        isVisible = presentationStateManager.visibilityState,
-        inAppMessageSettings = inAppMessageSettings,
-        gestureTracker = gestureTracker,
-        onCreated = { onCreated(it) },
-        onDisposed = { onDisposed() },
-        onBackPressed = onBackPressed
-    )
-}
-
-/**
- * Represents an InAppMessage view. Composes an optional MessageBackdrop and MessageFrame.
- * @param isVisible transition state of the visibility of the InAppMessage
- * @param inAppMessageSettings [InAppMessageSettings] for the InAppMessage
- * @param gestureTracker
- * @param onCreated callback invoked when the [WebView] that holds the message content is created
- * @param onDisposed callback invoked when the composable that holds message content is disposed
- */
-@Composable
-internal fun Message(
-    isVisible: MutableTransitionState<Boolean>,
-    inAppMessageSettings: InAppMessageSettings,
-    gestureTracker: GestureTracker,
-    onCreated: (WebView) -> Unit,
-    onDisposed: () -> Unit,
-    onBackPressed: () -> Unit
-) {
-    if (inAppMessageSettings.shouldTakeOverUi) {
-        /* Dialog is used to take over the UI when the InAppMessage is set to take over the UI.
-         This is necessary to ensure that the InAppMessage is displayed on top of the UI.
-         Which will ensure that ScreenReader can read the content of the InAppMessage only and not the underlying UI.
-         */
-        Dialog(
-            properties = DialogProperties(
-                usePlatformDefaultWidth = false,
-                dismissOnBackPress = true,
-                dismissOnClickOutside = false
-            ),
-            onDismissRequest = {
-                onBackPressed()
-            }
-        ) {
-            /* Remove the default dim and animations for the dialog window
-               Customer can set their own dim and animations if needed and those will be honoured in MessageBackdrop inside Message
-             */
-
-            val dialogWindow = (LocalView.current.parent as? DialogWindowProvider)?.window
-
-            SideEffect {
-                dialogWindow?.let {
-                    it.setDimAmount(0f)
-                    it.setWindowAnimations(-1)
-                }
-            }
-
-            // Backdrop for the InAppMessage only takes into effect if the InAppMessage is taking over the UI
-            MessageBackdrop(
-                visibility = isVisible,
-                inAppMessageSettings = inAppMessageSettings,
-                gestureTracker = gestureTracker
-            )
-
-            // Frame that holds the InAppMessage
-            MessageFrame(
-                visibility = isVisible,
-                inAppMessageSettings = inAppMessageSettings,
-                gestureTracker = gestureTracker,
-                onCreated = onCreated,
-                onDisposed = onDisposed
-            )
-        }
-    } else {
-        // Frame that holds the InAppMessage
-        MessageFrame(
-            visibility = isVisible,
-            inAppMessageSettings = inAppMessageSettings,
-            gestureTracker = gestureTracker,
-            onCreated = onCreated,
-            onDisposed = onDisposed
-        )
-    }
+//    // A gesture tracker to be injected into all subcomponents for identifying and
+//    // propagating gestures
+//    val gestureTracker: GestureTracker =
+//        remember {
+//            GestureTracker(
+//                defaultExitTransition = MessageAnimationMapper.getExitTransitionFor(
+//                    inAppMessageSettings.dismissAnimation
+//                ),
+//                acceptedGestures = inAppMessageSettings.gestureMap.keys
+//            ) {
+//                onGestureDetected(it)
+//            }
+//        }
+//
+//    // BackHandler conditionally handles the back press event based on the visibility of the message
+//    BackHandler(enabled = presentationStateManager.presentableState.value == Presentable.State.VISIBLE) {
+//        onBackPressed()
+//    }
+//
+//    Message(
+//        isVisible = presentationStateManager.visibilityState,
+//        inAppMessageSettings = inAppMessageSettings,
+//        gestureTracker = gestureTracker,
+//        onCreated = { onCreated(it) },
+//        onDisposed = { onDisposed() },
+//        onBackPressed = onBackPressed
+//    )
+//}
+//
+///**
+// * Represents an InAppMessage view. Composes an optional MessageBackdrop and MessageFrame.
+// * @param isVisible transition state of the visibility of the InAppMessage
+// * @param inAppMessageSettings [InAppMessageSettings] for the InAppMessage
+// * @param gestureTracker
+// * @param onCreated callback invoked when the [WebView] that holds the message content is created
+// * @param onDisposed callback invoked when the composable that holds message content is disposed
+// */
+//@Composable
+//internal fun Message(
+//    isVisible: MutableTransitionState<Boolean>,
+//    inAppMessageSettings: InAppMessageSettings,
+//    gestureTracker: GestureTracker,
+//    onCreated: (WebView) -> Unit,
+//    onDisposed: () -> Unit,
+//    onBackPressed: () -> Unit
+//) {
+//    if (inAppMessageSettings.shouldTakeOverUi) {
+//        /* Dialog is used to take over the UI when the InAppMessage is set to take over the UI.
+//         This is necessary to ensure that the InAppMessage is displayed on top of the UI.
+//         Which will ensure that ScreenReader can read the content of the InAppMessage only and not the underlying UI.
+//         */
+//        Dialog(
+//            properties = DialogProperties(
+//                usePlatformDefaultWidth = false,
+//                dismissOnBackPress = true,
+//                dismissOnClickOutside = false
+//            ),
+//            onDismissRequest = {
+//                onBackPressed()
+//            }
+//        ) {
+//            /* Remove the default dim and animations for the dialog window
+//               Customer can set their own dim and animations if needed and those will be honoured in MessageBackdrop inside Message
+//             */
+//
+//            val dialogWindow = (LocalView.current.parent as? DialogWindowProvider)?.window
+//
+//            SideEffect {
+//                dialogWindow?.let {
+//                    it.setDimAmount(0f)
+//                    it.setWindowAnimations(-1)
+//                }
+//            }
+//
+//            // Backdrop for the InAppMessage only takes into effect if the InAppMessage is taking over the UI
+//            MessageBackdrop(
+//                visibility = isVisible,
+//                inAppMessageSettings = inAppMessageSettings,
+//                gestureTracker = gestureTracker
+//            )
+//
+//            // Frame that holds the InAppMessage
+//            MessageFrame(
+//                visibility = isVisible,
+//                inAppMessageSettings = inAppMessageSettings,
+//                gestureTracker = gestureTracker,
+//                onCreated = onCreated,
+//                onDisposed = onDisposed
+//            )
+//        }
+//    } else {
+//        // Frame that holds the InAppMessage
+//        MessageFrame(
+//            visibility = isVisible,
+//            inAppMessageSettings = inAppMessageSettings,
+//            gestureTracker = gestureTracker,
+//            onCreated = onCreated,
+//            onDisposed = onDisposed
+//        )
+//    }
 }
