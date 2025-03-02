@@ -17,7 +17,6 @@ import com.adobe.marketing.mobile.internal.util.CustomThreadFactory;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -42,8 +41,9 @@ public class PersistentHitQueue extends HitQueuing {
      */
     public PersistentHitQueue(final DataQueue queue, final HitProcessing processor)
             throws IllegalArgumentException {
-        this(queue, processor, Executors.newScheduledThreadPool(1, new CustomThreadFactory("ADB-PersistentHitQueue")));
+        this(queue, processor, Executors.newSingleThreadScheduledExecutor(new CustomThreadFactory("ADB-HQ")));
     }
+
     @VisibleForTesting
     PersistentHitQueue(
             final DataQueue queue,
