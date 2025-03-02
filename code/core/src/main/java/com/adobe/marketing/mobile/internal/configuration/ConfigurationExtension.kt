@@ -20,6 +20,7 @@ import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
+import com.adobe.marketing.mobile.internal.util.CustomThreadFactory
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngine
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.util.DataReader
@@ -79,7 +80,7 @@ internal class ConfigurationExtension : Extension {
         extensionApi,
         AppIdManager(),
         LaunchRulesEngine("Configuration", extensionApi),
-        Executors.newSingleThreadScheduledExecutor()
+        Executors.newSingleThreadScheduledExecutor(CustomThreadFactory("ADB-Configuration"))
     )
 
     /**

@@ -35,7 +35,7 @@ internal class AndroidEventHistory : EventHistory {
      * Responsible for holding a single thread executor for lazy initialization only if
      * AndroidEventHistory operations are used.
      */
-    private val executor by lazy { Executors.newSingleThreadExecutor(CustomThreadFactory("ADB-AndroidEventHistory")) }
+    private val executor by lazy { Executors.newSingleThreadExecutor(CustomThreadFactory("ADB-EventHistory")) }
 
     /**
      * Record an event in the [AndroidEventHistoryDatabase].

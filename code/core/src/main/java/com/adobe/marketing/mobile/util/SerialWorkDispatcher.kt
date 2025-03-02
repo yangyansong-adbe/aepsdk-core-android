@@ -84,7 +84,9 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
     /**
      * The executor to which work is submitted for sequencing.
      */
-    private var executorService: ExecutorService = Executors.newSingleThreadExecutor(CustomThreadFactory("ADB-"+ this.name))
+    private var executorService: ExecutorService = Executors.newSingleThreadExecutor(CustomThreadFactory(
+        "ADB-SWD-$name"
+    ))
 
     /**
      * Holds the work items that need to be processed by this dispatcher.
