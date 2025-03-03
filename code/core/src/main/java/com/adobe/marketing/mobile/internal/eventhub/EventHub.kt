@@ -33,6 +33,8 @@ import com.adobe.marketing.mobile.internal.util.prettify
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.util.EventDataUtils
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
@@ -72,9 +74,11 @@ internal class EventHub {
 
     private val eventPreprocessorsChannel = Channel<Event>(Channel.UNLIMITED)
 
-    private val eventHubScope = CoroutineScope(SDKDispatcher.createDispatcher(1))
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val eventHubScope = CoroutineScope(Dispatchers.IO.limitedParallelism(1))
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val eventDispatcherScope =
-        CoroutineScope(SDKDispatcher.createDispatcher(1))
+        CoroutineScope(Dispatchers.IO.limitedParallelism(1))
 
     private val registeredExtensions: ConcurrentHashMap<String, ExtensionContainer> =
         ConcurrentHashMap()
@@ -866,7 +870,7 @@ internal class EventHub {
 }
 
 private object CompletionHandler {
-    private val coroutineScope = CoroutineScope(SDKDispatcher.createDispatcher(1))
+    private val coroutineScope = CoroutineScope(SDKDispatcher.createExtensionDispatcher(1))
     private val map = mutableMapOf<String, Job>()
     private val handlerMap = mutableMapOf<String, AdobeCallbackWithError<Event>>()
 

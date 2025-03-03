@@ -14,8 +14,6 @@ import com.adobe.marketing.mobile.internal.eventhub.SDKDispatcher
 import com.adobe.marketing.mobile.util.retry.Retry
 import com.adobe.marketing.mobile.util.retry.retryConfig
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 
@@ -27,7 +25,7 @@ class PersistentHitQueueV2(
     private val queue: DataQueue,
     private val processor: SuspendableHitProcessing,
 ) : HitQueuing() {
-    private val hitProcessingScope = CoroutineScope(SDKDispatcher.createDispatcher(1))
+    private val hitProcessingScope = CoroutineScope(SDKDispatcher.createPersistQueueDispatcher())
 
     @Volatile
     var isProcessing = false

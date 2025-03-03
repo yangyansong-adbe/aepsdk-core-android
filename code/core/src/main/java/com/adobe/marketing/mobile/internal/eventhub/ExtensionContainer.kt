@@ -32,7 +32,7 @@ import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
 
 private val subscriberScope = CoroutineScope(
-    SDKDispatcher.createDispatcher(1)
+    SDKDispatcher.createExtensionDispatcher(1)
 )
 
 internal class ExtensionContainer(
@@ -67,7 +67,7 @@ internal class ExtensionContainer(
         ConcurrentLinkedQueue()
 
     private val processingScope = CoroutineScope(
-        SDKDispatcher.createDispatcher(1)
+        SDKDispatcher.createExtensionDispatcher(1)
     )
 
     private val eventChannel = Channel<Event>(Channel.UNLIMITED)

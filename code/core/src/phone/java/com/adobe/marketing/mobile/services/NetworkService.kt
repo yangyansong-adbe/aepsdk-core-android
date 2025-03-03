@@ -10,9 +10,7 @@
 */
 package com.adobe.marketing.mobile.services
 
-import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.internal.eventhub.SDKDispatcher
-import com.adobe.marketing.mobile.internal.util.CustomThreadFactory
 import com.adobe.marketing.mobile.internal.util.isInternetAvailable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,11 +18,6 @@ import kotlinx.coroutines.launch
 import java.io.IOException
 import java.net.MalformedURLException
 import java.net.URL
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.SynchronousQueue
-import java.util.concurrent.ThreadFactory
-import java.util.concurrent.ThreadPoolExecutor
-import java.util.concurrent.TimeUnit
 
 
 /** Implementation of [Networking] service  */
@@ -48,7 +41,7 @@ internal class NetworkService : Networking {
             )
         }
         try {
-            CoroutineScope(SDKDispatcher.createDispatcher(5)).launch {
+            CoroutineScope(SDKDispatcher.getNetworkDispatcher()).launch {
                 Log.warning(
                     ServiceConstants.LOG_TAG,
                     TAG,
