@@ -31,9 +31,7 @@ import kotlinx.coroutines.launch
 import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
 
-private val subscriberScope = CoroutineScope(
-    SDKDispatcher.createExtensionDispatcher(1)
-)
+private val subscriberScope = CoroutineScope(SDKDispatcher.subscriberDispatcher)
 
 internal class ExtensionContainer(
     private val extensionClass: Class<out Extension>,
@@ -66,9 +64,7 @@ internal class ExtensionContainer(
     private val eventListeners: ConcurrentLinkedQueue<ExtensionListenerContainer> =
         ConcurrentLinkedQueue()
 
-    private val processingScope = CoroutineScope(
-        SDKDispatcher.createExtensionDispatcher(1)
-    )
+    private val processingScope = CoroutineScope(SDKDispatcher.extensionEventDispatcher)
 
     private val eventChannel = Channel<Event>(Channel.UNLIMITED)
 

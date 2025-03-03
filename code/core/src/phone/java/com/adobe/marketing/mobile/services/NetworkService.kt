@@ -41,7 +41,7 @@ internal class NetworkService : Networking {
             )
         }
         try {
-            CoroutineScope(SDKDispatcher.getNetworkDispatcher()).launch {
+            CoroutineScope(SDKDispatcher.networkThreadPoolDispatcher).launch {
                 Log.warning(
                     ServiceConstants.LOG_TAG,
                     TAG,

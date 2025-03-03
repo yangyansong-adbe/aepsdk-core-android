@@ -74,11 +74,8 @@ internal class EventHub {
 
     private val eventPreprocessorsChannel = Channel<Event>(Channel.UNLIMITED)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val eventHubScope = CoroutineScope(Dispatchers.IO.limitedParallelism(1))
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val eventDispatcherScope =
-        CoroutineScope(Dispatchers.IO.limitedParallelism(1))
+    private val eventHubScope = CoroutineScope(SDKDispatcher.eventHubDispatcher)
+    private val eventDispatcherScope =CoroutineScope(SDKDispatcher.eventDispatcher)
 
     private val registeredExtensions: ConcurrentHashMap<String, ExtensionContainer> =
         ConcurrentHashMap()
@@ -870,7 +867,7 @@ internal class EventHub {
 }
 
 private object CompletionHandler {
-    private val coroutineScope = CoroutineScope(SDKDispatcher.createExtensionDispatcher(1))
+    private val coroutineScope = CoroutineScope(SDKDispatcher.completionHandlerDispatcher)
     private val map = mutableMapOf<String, Job>()
     private val handlerMap = mutableMapOf<String, AdobeCallbackWithError<Event>>()
 
