@@ -24,10 +24,19 @@ import com.adobe.marketing.mobile.internal.util.CustomThreadFactory
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngine
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.util.DataReader
+import com.adobe.marketing.mobile.util.retry.Retry
+import com.adobe.marketing.mobile.util.retry.exponentialWaitInterval
+import com.adobe.marketing.mobile.util.retry.fixedWaitInterval
+import com.adobe.marketing.mobile.util.retry.retryConfig
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 /**
  * Configuration Extension.
@@ -53,7 +62,6 @@ internal class ConfigurationExtension : Extension {
             "config.isinternalevent"
         internal const val DATASTORE_KEY = "AdobeMobile_ConfigState"
         internal const val RULES_CONFIG_URL = "rules.url"
-        internal const val CONFIG_DOWNLOAD_RETRY_ATTEMPT_DELAY_MS = 5000L
         internal const val CONFIGURATION_RESPONSE_IDENTITY_ALL_IDENTIFIERS = "config.allIdentifiers"
         internal const val EVENT_STATE_OWNER = "stateowner"
         internal const val GLOBAL_CONFIG_PRIVACY = "global.privacy"
@@ -72,9 +80,6 @@ internal class ConfigurationExtension : Extension {
     private val launchRulesEngine: LaunchRulesEngine
     private val configurationStateManager: ConfigurationStateManager
     private val configurationRulesManager: ConfigurationRulesManager
-    private val retryWorker: ScheduledExecutorService
-    private var retryConfigurationCounter: Int = 0
-    private var retryConfigTaskHandle: Future<*>? = null
 
     constructor(extensionApi: ExtensionApi) : this(
         extensionApi,
@@ -111,7 +116,7 @@ internal class ConfigurationExtension : Extension {
     ) : super(extensionApi) {
         this.appIdManager = appIdManager
         this.launchRulesEngine = launchRulesEngine
-        this.retryWorker = retryWorker
+        // retryWorker is removed
         this.configurationStateManager = configurationStateManager
         this.configurationRulesManager = configurationRulesManager
 
@@ -260,26 +265,31 @@ internal class ConfigurationExtension : Extension {
 
         // Stop all event processing for the extension until new configuration download is attempted
         api.stopEvents()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val executor = Retry.createExecutor<Map<String, Any?>?>(
+                    retryConfig {
+                        intervalFunction(exponentialWaitInterval(), 100L, 10000L) // exponentially increase retry interval
+                    })
+                    .retryOnResult { return@retryOnResult it == null } // retry if the result is null
 
-        configurationStateManager.updateConfigWithAppId(appId) { config ->
-            if (config != null) {
-                cancelConfigRetry()
+                executor.execute { // suspend function
+                    val configMap: Map<String, Any?>? = suspendCoroutine { // suspend function
+                        configurationStateManager.updateConfigWithAppId(appId) { config ->
+                            it.resume(config)
+                        }
+                    }
+                    if (configMap == null) { // If the configuration download fails, publish current configuration and retry download again.
+                        sharedStateResolver?.resolve(configurationStateManager.environmentAwareConfiguration)
+                    }
+                    return@execute configMap
+                }
+
+                // resume execution
                 applyConfigurationChanges(RulesSource.REMOTE, sharedStateResolver)
-            } else {
-                Log.trace(
-                    TAG,
-                    TAG,
-                    "Failed to download configuration. Applying Will retry download."
-                )
-
-                // If the configuration download fails, publish current configuration and retry download again.
-                sharedStateResolver?.resolve(configurationStateManager.environmentAwareConfiguration)
-
-                retryConfigTaskHandle = retryConfigDownload(appId)
+            } finally {
+                api.startEvents()
             }
-
-            // Start event processing again
-            api.startEvents()
         }
     }
 
@@ -423,38 +433,6 @@ internal class ConfigurationExtension : Extension {
         ).setEventData(eventData).inResponseToEvent(event).build()
 
         api.dispatch(responseIdentityEvent)
-    }
-
-    /**
-     * Attempts to download the configuration associated with [appId] by dispatching
-     * an internal configuration request event.
-     *
-     * @param appId the appId for which the config download should be attempted
-     * @return the [Future] associated with the runnable that dispatches the configuration request event
-     */
-    private fun retryConfigDownload(appId: String): Future<*> {
-        val retryDelay = ++retryConfigurationCounter * CONFIG_DOWNLOAD_RETRY_ATTEMPT_DELAY_MS
-        return retryWorker.schedule(
-            {
-                dispatchConfigurationRequest(
-                    mutableMapOf(
-                        CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to appId,
-                        CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT to true
-                    )
-                )
-            },
-            retryDelay,
-            TimeUnit.MILLISECONDS
-        )
-    }
-
-    /**
-     * Cancels the configuration retry attempt and resets the retry counter.
-     */
-    private fun cancelConfigRetry() {
-        retryConfigTaskHandle?.cancel(false)
-        retryConfigTaskHandle = null
-        retryConfigurationCounter = 0
     }
 
     /**
