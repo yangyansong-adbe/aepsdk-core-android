@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile.services.ui.floatingbutton.views
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
@@ -24,10 +25,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.FloatingActionButtonDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -85,6 +89,8 @@ internal fun FloatingButton(
     // Tracks the offset of the floating button as a result of dragging
     val offsetState = remember { mutableStateOf(correctedOffset) }
 
+    val focusRequester = remember { FocusRequester() }
+
     // The draggable area for the floating button
     Box(
         modifier = Modifier
@@ -105,6 +111,8 @@ internal fun FloatingButton(
                         offsetState.value.y.roundToInt()
                     )
                 }
+                .focusRequester(focusRequester) // Add focus requester
+                .focusable()  // Make it focusable
                 .pointerInput(Unit) {
                     detectDragGestures(
                         onDragEnd = {
@@ -143,6 +151,9 @@ internal fun FloatingButton(
                     .wrapContentSize()
                     .testTag(FloatingButtonTestTags.FLOATING_BUTTON_GRAPHIC)
             )
+            LaunchedEffect(Unit) {
+//                focusRequester.requestFocus()
+            }
         }
     }
 }
