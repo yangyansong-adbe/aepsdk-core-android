@@ -291,6 +291,7 @@ internal class EventHub {
     ) {
         val registeredExtensions = AtomicInteger(0)
         extensions.forEach {
+
             registerExtension(it) {
                 if (registeredExtensions.incrementAndGet() == extensions.size) {
                     start()
@@ -327,6 +328,7 @@ internal class EventHub {
             registeredExtensions[extensionTypeName] = container
         }
     }
+
 
     /**
      * Called after creating extension container to hold the extension
