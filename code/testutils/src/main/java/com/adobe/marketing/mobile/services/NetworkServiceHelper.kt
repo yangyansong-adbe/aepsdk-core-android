@@ -15,6 +15,6 @@ open class NetworkServiceHelper : Networking {
     private val delegate: NetworkService = NetworkService()
 
     override fun connectAsync(request: NetworkRequest?, callback: NetworkCallback?) {
-        delegate.connectAsync(request, callback)
+        delegate.connectAsync(request!!, callback)
     }
 }

@@ -19,6 +19,7 @@ import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.Extension
+import com.adobe.marketing.mobile.ExtensionV2
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.SharedStateResolution
 import com.adobe.marketing.mobile.SharedStateResolver
@@ -55,12 +56,22 @@ internal class EventHub {
     /**
      * Executor for eventhub callbacks and response listeners
      */
-    private val scheduledExecutor: ScheduledExecutorService by lazy { Executors.newSingleThreadScheduledExecutor(CustomThreadFactory("ADB-scheduledExecutor")) }
+    private val scheduledExecutor: ScheduledExecutorService by lazy {
+        Executors.newSingleThreadScheduledExecutor(
+            CustomThreadFactory("ADB-scheduledExecutor")
+        )
+    }
+
+    private val extensionV2Manager = ExtensionV2Manager()
 
     /**
      * Executor to serialize EventHub operations
      */
-    private val eventHubExecutor: ExecutorService by lazy { Executors.newSingleThreadExecutor(CustomThreadFactory("ADB-eventHubExecutor")) }
+    private val eventHubExecutor: ExecutorService by lazy {
+        Executors.newSingleThreadExecutor(
+            CustomThreadFactory("ADB-eventHubExecutor")
+        )
+    }
 
     /**
      * Concurrent map which stores the backing extension container for each Extension and can be referenced by extension type name
@@ -78,7 +89,8 @@ internal class EventHub {
      * Concurrent list which stores the registered event preprocessors.
      * Preprocessors will be executed on each event before distributing it to extension queue.
      */
-    private val eventPreprocessors: ConcurrentLinkedQueue<EventPreprocessor> = ConcurrentLinkedQueue()
+    private val eventPreprocessors: ConcurrentLinkedQueue<EventPreprocessor> =
+        ConcurrentLinkedQueue()
 
     /**
      * Atomic counter which is incremented when processing event and shared state.
@@ -131,11 +143,14 @@ internal class EventHub {
                 it.eventProcessor.offer(processedEvent)
             }
 
+            // Notify V2 extensions
+            extensionV2Manager.forwardEvent(processedEvent)
+
             if (Log.getLogLevel() >= LoggingMode.DEBUG) {
                 Log.debug(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
-                    "Dispatched Event #${getEventNumber(event)} to extensions after processing rules - ($processedEvent)"
+                    "Dispatched Event #${getEventNumber(event.uniqueIdentifier)} to extensions after processing rules - ($processedEvent)"
                 )
             }
 
@@ -233,7 +248,11 @@ internal class EventHub {
             this.hubStarted = true
             this.eventDispatcher.start()
             this.shareEventHubSharedState()
-            Log.trace(CoreConstants.LOG_TAG, LOG_TAG, "EventHub started. Will begin processing events")
+            Log.trace(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
+                "EventHub started. Will begin processing events"
+            )
         }
     }
 
@@ -289,13 +308,48 @@ internal class EventHub {
         extensions: Set<Class<out Extension>>,
         completion: (() -> Unit)? = null
     ) {
+        val pair = identifyExtensionClasses(extensions)
         val registeredExtensions = AtomicInteger(0)
-        extensions.forEach {
+        val extensionsToRegister = pair.first.size + pair.second.size
+        val completionHandler: (() -> Unit) = {
+            if (registeredExtensions.incrementAndGet() == extensionsToRegister) {
+                start()
+                completion?.let { executeCompletionHandler { it() } }
+            }
+        }
+        registerV1Extensions(pair.first, completionHandler)
+        registerV2Extensions(pair.second, completionHandler)
+    }
+
+    private fun registerV1Extensions(
+        extensionClasses: Set<Class<out Extension>>,
+        completion: (() -> Unit)? = null
+    ) {
+        if (extensionClasses.isEmpty()) {
+            return
+        }
+        extensionClasses.forEach {
 
             registerExtension(it) {
-                if (registeredExtensions.incrementAndGet() == extensions.size) {
-                    start()
-                    completion?.let { executeCompletionHandler { it() } }
+                if (completion != null) {
+                    completion()
+                }
+            }
+        }
+    }
+
+    private fun registerV2Extensions(
+        extensionClasses: Set<Class<out ExtensionV2>>,
+        completion: (() -> Unit)? = null
+    ) {
+        if (extensionClasses.isEmpty()) {
+            return
+        }
+        extensionClasses.forEach {
+
+            registerV2Extension(it) {
+                if (completion != null) {
+                    completion()
                 }
             }
         }
@@ -329,6 +383,27 @@ internal class EventHub {
         }
     }
 
+    private fun registerV2Extension(
+        extensionClass: Class<out ExtensionV2>,
+        completion: ((error: EventHubError?) -> Unit)? = null
+    ) {
+        eventHubExecutor.submit {
+            val extensionTypeName = extensionClass.name
+            if (extensionV2Manager.isRegistered(extensionTypeName)) {
+                completion?.let { executeCompletionHandler { it(EventHubError.DuplicateExtensionName) } }
+                return@submit
+            }
+
+            extensionV2Manager.registerV2Extension(extensionClass) { error ->
+                eventHubExecutor.submit {
+                    completion?.let { executeCompletionHandler { it(error) } }
+                    //TODO: xxx
+//                    extensionPostRegistration(extensionClass, error)
+                }
+            }
+        }
+    }
+
 
     /**
      * Called after creating extension container to hold the extension
@@ -336,12 +411,23 @@ internal class EventHub {
      * @param extensionClass The class of extension to register
      * @param error Error denoting the status of registration
      */
-    private fun extensionPostRegistration(extensionClass: Class<out Extension>, error: EventHubError) {
+    private fun extensionPostRegistration(
+        extensionClass: Class<out Extension>,
+        error: EventHubError
+    ) {
         if (error != EventHubError.None) {
-            Log.warning(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass registration failed with error $error")
+            Log.warning(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
+                "Extension $extensionClass registration failed with error $error"
+            )
             unregisterExtensionInternal(extensionClass)
         } else {
-            Log.trace(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass registered successfully")
+            Log.trace(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
+                "Extension $extensionClass registered successfully"
+            )
             shareEventHubSharedState()
         }
     }
@@ -366,13 +452,22 @@ internal class EventHub {
     ) {
         val extensionName = extensionClass.extensionTypeName
         val container = registeredExtensions.remove(extensionName)
+        //TODO: unregister V2 extensions
         val error: EventHubError = if (container != null) {
             container.shutdown()
             shareEventHubSharedState()
-            Log.trace(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass unregistered successfully")
+            Log.trace(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
+                "Extension $extensionClass unregistered successfully"
+            )
             EventHubError.None
         } else {
-            Log.warning(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass unregistration failed as extension was not registered")
+            Log.warning(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
+                "Extension $extensionClass unregistration failed as extension was not registered"
+            )
             EventHubError.ExtensionNotRegistered
         }
 
@@ -644,7 +739,8 @@ internal class EventHub {
         resolution: SharedStateResolution
     ): SharedStateResult? {
         val callable = Callable<SharedStateResult?> {
-            val container = getExtensionContainer(extensionName) ?: run {
+            val container = getExtensionContainer(extensionName)
+            if (container == null && !extensionV2Manager.isRegistered(extensionName)) {
                 Log.debug(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
@@ -653,7 +749,6 @@ internal class EventHub {
 
                 return@Callable null
             }
-
             val sharedStateManager = getSharedStateManager(sharedStateType, extensionName) ?: run {
                 Log.warning(
                     CoreConstants.LOG_TAG,
@@ -663,14 +758,21 @@ internal class EventHub {
                 return@Callable null
             }
 
-            val version = getEventNumber(event) ?: SharedStateManager.VERSION_LATEST
+            val version = event?.uniqueIdentifier?.let { getEventNumber(it) }
+                ?: SharedStateManager.VERSION_LATEST
 
             val result: SharedStateResult = when (resolution) {
                 SharedStateResolution.ANY -> sharedStateManager.resolve(version)
                 SharedStateResolution.LAST_SET -> sharedStateManager.resolveLastSet(version)
             }
 
-            val stateProviderLastVersion = getEventNumber(container.lastProcessedEvent) ?: 0
+            val lastProcessedEventUUID = container?.let {
+                container.lastProcessedEvent?.uniqueIdentifier
+            } ?: run {
+                extensionV2Manager.getLastProcessedEventUUID(extensionName)
+            }
+            val stateProviderLastVersion = lastProcessedEventUUID?.let { getEventNumber(it) } ?: 0
+
             // shared state is still considered pending if barrier is used and the state provider has not processed past the previous event
             val hasProcessedEvent =
                 if (event == null) true else stateProviderLastVersion > version - 1
@@ -725,6 +827,7 @@ internal class EventHub {
         eventHubExecutor.submit {
             eventDispatcher.shutdown()
 
+            // TODO: shutdown V2 extensions
             // Unregister all extensions
             registeredExtensions.forEach { (_, extensionContainer) ->
                 extensionContainer.shutdown()
@@ -742,12 +845,8 @@ internal class EventHub {
      * @return the event number for the event if it exists (if it has been recorded/dispatched),
      *         null otherwise
      */
-    private fun getEventNumber(event: Event?): Int? {
-        if (event == null) {
-            return null
-        }
-        val eventUUID = event.uniqueIdentifier
-        return eventNumberMap[eventUUID]
+    private fun getEventNumber(uuid: String): Int? {
+        return eventNumberMap[uuid]
     }
 
     /**
@@ -773,11 +872,11 @@ internal class EventHub {
     private fun getExtensionContainer(extensionName: String): ExtensionContainer? {
         val extensionContainer = registeredExtensions.entries.firstOrNull {
             return@firstOrNull (
-                it.value.sharedStateName?.equals(
-                    extensionName,
-                    true
-                ) ?: false
-                )
+                    it.value.sharedStateName?.equals(
+                        extensionName,
+                        true
+                    ) ?: false
+                    )
         }
         return extensionContainer?.value
     }
@@ -795,6 +894,14 @@ internal class EventHub {
         sharedStateType: SharedStateType,
         extensionName: String
     ): SharedStateManager? {
+        return getSharedStateManagerForExtensionV1(sharedStateType, extensionName)
+            ?: getSharedStateManagerForExtensionV2(sharedStateType, extensionName)
+    }
+
+    private fun getSharedStateManagerForExtensionV1(
+        sharedStateType: SharedStateType,
+        extensionName: String
+    ): SharedStateManager? {
         val extensionContainer = getExtensionContainer(extensionName) ?: run {
             return null
         }
@@ -802,6 +909,16 @@ internal class EventHub {
             return null
         }
         return sharedStateManager
+    }
+
+    private fun getSharedStateManagerForExtensionV2(
+        sharedStateType: SharedStateType,
+        extensionName: String
+    ): SharedStateManager? {
+        if (!extensionV2Manager.isRegistered(extensionName)) {
+            return null
+        }
+        return extensionV2Manager.getSharedStateManager(extensionName)
     }
 
     /**
@@ -820,7 +937,7 @@ internal class EventHub {
         //    We start with '0' because extensions can call createSharedState() to export initial state
         //    before handling any event and other extensions should be able to read this state.
         return when {
-            event != null -> getEventNumber(event) ?: 0
+            event != null -> getEventNumber(event.uniqueIdentifier) ?: 0
             !sharedStateManager.isEmpty() -> lastEventNumber.incrementAndGet()
             else -> 0
         }
@@ -849,6 +966,20 @@ internal class EventHub {
         registeredExtensions.values.forEach {
             val extensionName = it.sharedStateName
             if (extensionName != null && extensionName != EventHubConstants.NAME) {
+                val extensionInfo = mutableMapOf<String, Any?>(
+                    EventHubConstants.EventDataKeys.FRIENDLY_NAME to it.friendlyName,
+                    EventHubConstants.EventDataKeys.VERSION to it.version
+                )
+                it.metadata?.let { metadata ->
+                    extensionInfo[EventHubConstants.EventDataKeys.METADATA] = metadata
+                }
+
+                extensionsInfo[extensionName] = extensionInfo
+            }
+        }
+        extensionV2Manager.getRegisteredExtensionInfo().forEach {
+            val extensionName = it.name
+            if (extensionName != EventHubConstants.NAME) {
                 val extensionInfo = mutableMapOf<String, Any?>(
                     EventHubConstants.EventDataKeys.FRIENDLY_NAME to it.friendlyName,
                     EventHubConstants.EventDataKeys.VERSION to it.version

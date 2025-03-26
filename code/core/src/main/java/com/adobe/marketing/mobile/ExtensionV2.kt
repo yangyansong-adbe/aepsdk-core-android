@@ -18,7 +18,16 @@ abstract class ExtensionV2 {
     }
 }
 
-private object dummyContainer : ExtensionApi() {
+abstract class ExtensionV2Delegate : Extension(dummyContainer) {
+    override fun getName(): String {
+        return "ExtensionV2Delegate"
+    }
+
+    abstract fun getExtensionV2Class(): Class<out ExtensionV2>
+
+}
+
+private val dummyContainer = object : ExtensionApi() {
     override fun registerEventListener(
         eventType: String,
         eventSource: String,
@@ -64,14 +73,4 @@ private object dummyContainer : ExtensionApi() {
         handler: EventHistoryResultHandler<Int>
     ) {
     }
-}
-
-
-abstract class ExtensionV2Delegate : Extension(dummyContainer) {
-    override fun getName(): String {
-        return "ExtensionV2Delegate"
-    }
-
-    abstract fun getExtensionV2Class(): Class<out ExtensionV2>
-
 }
