@@ -12,6 +12,7 @@ import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.services.Log
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -24,7 +25,14 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-private val subscriberScope = CoroutineScope(Dispatchers.IO)
+private val handler = CoroutineExceptionHandler { _, exception ->
+    Log.debug(
+        CoreConstants.LOG_TAG,
+        "ExtensionContainerV2",
+        "Caught exception - $exception "
+    )
+}
+private val subscriberScope = CoroutineScope(Dispatchers.IO + handler)
 
 internal class ExtensionContainerV2(
     private val readyForEvent: ReadyForEvent,
@@ -54,7 +62,7 @@ internal class ExtensionContainerV2(
 
     private suspend fun processEventQueue() =
 //        withTimeoutOrNull(10000) {
-        // TODO: when timeout reached, retry processing the event may run into issues. Consider remove the timeout.
+        // TODO: do we need timeout for event processing?
         coroutineScope {
             while (eventQueue.isNotEmpty()) {
                 // Check the event at the front of the queue.

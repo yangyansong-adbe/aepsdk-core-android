@@ -2,10 +2,10 @@ package com.adobe.marketing.mobile.internal.eventhub
 
 import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionV2
-import com.adobe.marketing.mobile.ExtensionV2Delegate
+import com.adobe.marketing.mobile.ExtensionV2Wrapper
 
 internal fun isExtensionV2Delegate(className: Class<out Extension>): Boolean {
-    return ExtensionV2Delegate::class.java.isAssignableFrom(className)
+    return ExtensionV2Wrapper::class.java.isAssignableFrom(className)
 }
 
 internal fun identifyExtensionClasses(extensions: Set<Class<out Extension>>): Pair<Set<Class<out Extension>>, Set<Class<out ExtensionV2>>> {
@@ -15,9 +15,9 @@ internal fun identifyExtensionClasses(extensions: Set<Class<out Extension>>): Pa
         if (isExtensionV2Delegate(extension)) {
             try {
                 @Suppress("UNCHECKED_CAST")
-                val delegateClass = extension as Class<out ExtensionV2Delegate>
+                val delegateClass = extension as Class<out ExtensionV2Wrapper>
                 val delegateObject =
-                    delegateClass.getDeclaredConstructor().newInstance() as ExtensionV2Delegate
+                    delegateClass.getDeclaredConstructor().newInstance() as ExtensionV2Wrapper
                 v2Extensions.add(delegateObject.getExtensionV2Class())
             } catch (e: Exception) {
                 // log error

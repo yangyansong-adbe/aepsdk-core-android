@@ -4,7 +4,7 @@ import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.ExtensionApiV2
 import com.adobe.marketing.mobile.ExtensionApiV2Builder
 import com.adobe.marketing.mobile.ExtensionV2
-import com.adobe.marketing.mobile.ExtensionV2Delegate
+import com.adobe.marketing.mobile.ExtensionV2Wrapper
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension
 import kotlinx.coroutines.delay
 import org.junit.Test
@@ -42,7 +42,7 @@ private class ExtensionV2Sample : ExtensionV2() {
 private val receivedXEvents = mutableListOf<Event>()
 private val receivedYEvents = mutableListOf<Event>()
 
-private class ExtensionV2DelegateImpl : ExtensionV2Delegate() {
+private class ExtensionV2DelegateImpl : ExtensionV2Wrapper() {
     override fun getExtensionV2Class(): Class<out ExtensionV2> {
         return ExtensionV2Sample::class.java
     }

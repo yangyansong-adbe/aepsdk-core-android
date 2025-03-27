@@ -22,7 +22,7 @@ internal object TestOnly{
 
 
 internal class ExtensionV2Manager {
-    private val extensionV2ManagerScope = CoroutineScope(Dispatchers.IO)
+    private val eventForwardingScope = CoroutineScope(Dispatchers.IO)
 
     private val registeredExtensions: ConcurrentHashMap<String, Pair<ExtensionV2Info, SharedStateManager>> =
         ConcurrentHashMap()
@@ -40,7 +40,7 @@ internal class ExtensionV2Manager {
 
     internal fun forwardEvent(event: Event) {
         TestOnly.dispatchedEvents.add(event)
-        extensionV2ManagerScope.launch {
+        eventForwardingScope.launch {
             _events.emit(event)
         }
     }

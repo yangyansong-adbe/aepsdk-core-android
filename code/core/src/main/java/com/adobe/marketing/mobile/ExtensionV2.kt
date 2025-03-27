@@ -18,13 +18,9 @@ abstract class ExtensionV2 {
     }
 }
 
-abstract class ExtensionV2Delegate : Extension(dummyContainer) {
-    override fun getName(): String {
-        return "ExtensionV2Delegate"
-    }
-
+abstract class ExtensionV2Wrapper : Extension(dummyContainer) {
+    override fun getName(): String { return "ExtensionV2Wrapper" }
     abstract fun getExtensionV2Class(): Class<out ExtensionV2>
-
 }
 
 private val dummyContainer = object : ExtensionApi() {
