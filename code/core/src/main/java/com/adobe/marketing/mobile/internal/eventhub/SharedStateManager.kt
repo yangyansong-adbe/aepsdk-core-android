@@ -21,7 +21,7 @@ import java.util.TreeMap
  * Internal representation of a shared event state.
  * Allows associating version and pending behavior with the state data in a queryable way.
  */
-private data class SharedState constructor(val version: Int, val status: SharedStateStatus, val data: Map<String, Any?>?) {
+internal data class SharedState constructor(val version: Int, val status: SharedStateStatus, val data: Map<String, Any?>?) {
     fun getResult(): SharedStateResult = SharedStateResult(status, data)
 }
 

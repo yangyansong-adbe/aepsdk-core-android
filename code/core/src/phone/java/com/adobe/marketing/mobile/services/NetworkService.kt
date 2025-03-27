@@ -220,7 +220,7 @@ import java.util.concurrent.TimeUnit
 //    }
 //}
 
-internal class NetworkService : Networking {
+class NetworkService : Networking {
     private val executorService: ExecutorService
 
     constructor() {
